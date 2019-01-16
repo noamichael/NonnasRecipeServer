@@ -114,13 +114,13 @@ public class MySql {
             executeUpdate(String.format(deleteTemplate, "RecipeStep"), Arrays.asList(id));
 
         } else {
-            String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize) VALUES (?, ?, ?, ?)";
+            String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize) VALUES(?,?,?,?)";
             id = executeInsert(insert, insertAndUpdateArgs);
         }
         final int recipeId = id;//need to use a final int for lambda
         
         recipe.getIngredients().forEach(ingredient -> {
-            String insertIngredient = "INSERT INTO Ingredient (recipeId, ingredientDescription) VALUES (?, ?)";
+            String insertIngredient = "INSERT INTO Ingredient (recipeId, ingredientDescription) VALUES(?,?)";
             executeInsert(insertIngredient, Arrays.asList(recipeId, ingredient.getIngredientDescription()));
         });
         
@@ -129,7 +129,7 @@ public class MySql {
         
         for(int i = 0; i < recipeSteps.size(); i++){
             RecipeStep step = recipeSteps.get(i);
-            String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES (?, ?, ?)";
+            String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES(?,?,?)";
             executeInsert(insertStep, Arrays.asList(recipeId, i + i, step.getStepDescription()));
         }
 
@@ -178,7 +178,7 @@ public class MySql {
     <T> List<T> executeQuery(String query, List<Object> params, SQLFunction<ResultSet, T> mapper) {
         try {
             // create the java statement
-            PreparedStatement st = prepare(query, params);
+            PreparedStatement st = prepare(query, params, Statement.NO_GENERATED_KEYS);
             // execute the query, and get a java resultset
             ResultSet rs = st.executeQuery();
             List<T> results = new ArrayList<>();
@@ -195,8 +195,8 @@ public class MySql {
         return null;
     }
 
-    PreparedStatement prepare(String query, List<Object> params) throws SQLException {
-        PreparedStatement st = con.prepareStatement(query);
+    PreparedStatement prepare(String query, List<Object> params, int options) throws SQLException {
+        PreparedStatement st = con.prepareStatement(query, options);
 
         for (int i = 0; i < params.size(); i++) {
             int paramIndex = i + 1;
@@ -212,8 +212,8 @@ public class MySql {
 
     int executeUpdate(String query, List<Object> args) {
         try {
-            PreparedStatement statement = prepare(query, args);
-            int r = statement.executeUpdate(query);
+            PreparedStatement statement = prepare(query, args, Statement.NO_GENERATED_KEYS);
+            int r = statement.executeUpdate();
             statement.close();
             return r;
         } catch (SQLException ex) {
@@ -224,8 +224,8 @@ public class MySql {
 
     int executeInsert(String query, List<Object> args) {
         try {
-            PreparedStatement statement = prepare(query, args);
-            statement.executeUpdate(query);
+            PreparedStatement statement = prepare(query, args, Statement.RETURN_GENERATED_KEYS);
+            statement.executeUpdate();
             ResultSet keys = statement.getGeneratedKeys();
             int id = -1;
             if (keys.next()) {
