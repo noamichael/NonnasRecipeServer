@@ -1,57 +1,23 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.piratesoft.recipe.server.schema;
-
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
 
 /**
  *
  * @author micha_000
+ * @param <Data>
  */
-public class RecipeResponse implements JsonRequest {
+public class RecipeResponse<Data> {
 
-    private Status status;
-    private Type type;
     private RecipeError error;
-    private String nowPlaying;
+    private Data data;
+    private Integer count;
+    private Integer page;
+    private Integer totalRecordCount;
 
     public RecipeResponse() {
     }
-
-    public RecipeResponse(Type type) {
-        this.type = type;
-    }
-
-     /**
-     * @return nowPlaying
-     */
-    public String getNowPlaying() {
-        return nowPlaying;
-    }
-
-    /**
-     * @param nowPlaying  to set
-     */
-    public void setNowPlaying(String nowPlaying) {
-        this.nowPlaying = nowPlaying;
-    }
-
-    /**
-     * @return the status
-     */
-    public Status getStatus() {
-        return status;
-    }
-
-    /**
-     * @param status the status to set
-     */
-    public void setStatus(Status status) {
-        this.status = status;
+    
+    public RecipeResponse(Data data) {
+        this.data = data;
     }
 
     /**
@@ -68,47 +34,63 @@ public class RecipeResponse implements JsonRequest {
         this.error = error;
     }
 
-    @Override
-    public JsonObjectBuilder toJson() {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
-        if (status != null) {
-            builder.add("status", status.name());
-        }
-       if (nowPlaying != null) {
-            builder.add("nowPlaying", nowPlaying);
-        }
-        if (type != null) {
-            builder.add("type", type.name());
-        }
-        if (error != null) {
-            builder.add("error", error.toJson());
-        }
-        return builder;
+    /**
+     * @return the data
+     */
+    public Data getData() {
+        return data;
     }
 
     /**
-     * @return the type
+     * @param data the data to set
      */
-    public Type getType() {
-        return type;
+    public void setData(Data data) {
+        this.data = data;
     }
 
     /**
-     * @param type the type to set
+     * @return the count
      */
-    public void setType(Type type) {
-        this.type = type;
+    public Integer getCount() {
+        return count;
     }
 
-    public enum Type {
-        COLOR, PATTERN, ANIMATION;
+    /**
+     * @param count the count to set
+     */
+    public void setCount(Integer count) {
+        this.count = count;
     }
 
-    public enum Status {
-        COMPLETE, PENDING, RUNNING, ERROR, SHUTDOWN;
+    /**
+     * @return the page
+     */
+    public Integer getPage() {
+        return page;
     }
 
-    public static class RecipeError implements JsonRequest {
+    /**
+     * @param page the page to set
+     */
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    /**
+     * @return the totalRecordCount
+     */
+    public Integer getTotalRecordCount() {
+        return totalRecordCount;
+    }
+
+    /**
+     * @param totalRecordCount the totalRecordCount to set
+     */
+    public void setTotalRecordCount(Integer totalRecordCount) {
+        this.totalRecordCount = totalRecordCount;
+    }
+
+    public static class RecipeError {
 
         private String code;
         private String message;
@@ -146,16 +128,5 @@ public class RecipeResponse implements JsonRequest {
             this.message = message;
         }
 
-        @Override
-        public JsonObjectBuilder toJson() {
-            JsonObjectBuilder builder = Json.createObjectBuilder();
-            if (code != null) {
-                builder.add("code", code);
-            }
-            if (message != null) {
-                builder.add("message", message);
-            }
-            return builder;
-        }
     }
 }
