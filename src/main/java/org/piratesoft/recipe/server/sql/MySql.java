@@ -23,7 +23,7 @@ public class MySql {
 
     private Connection con = null;
     private final String USERNAME = "root";
-    private final String PASSWORD = "m1a10794";
+    private final String PASSWORD = ".HTDoaahmou333.";
     //private static final String DRIVER = "com.mysql.jdbc.Driver";
     private final String URL = "jdbc:mysql://localhost:3306/NonnasRecipes";
 
