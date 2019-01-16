@@ -94,9 +94,9 @@ public class MySql {
         if (id != null) {
 
             String update = "UPDATE Recipe SET "
-                    + "recipeName = ? "
-                    + "recipeType = ? "
-                    + "cookTime = ? "
+                    + "recipeName = ?, "
+                    + "recipeType = ?, "
+                    + "cookTime = ?, "
                     + "servingSize = ? "
                     + "WHERE ID = ?";
 
@@ -108,7 +108,7 @@ public class MySql {
                 return -1;
             }
 
-            String deleteTemplate = "DELETE %s WHERE recipeId = ?";
+            String deleteTemplate = "DELETE FROM %s WHERE recipeId = ?";
 
             executeUpdate(String.format(deleteTemplate, "Ingredient"), Arrays.asList(id));
             executeUpdate(String.format(deleteTemplate, "RecipeStep"), Arrays.asList(id));
@@ -130,7 +130,7 @@ public class MySql {
         for(int i = 0; i < recipeSteps.size(); i++){
             RecipeStep step = recipeSteps.get(i);
             String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES(?,?,?)";
-            executeInsert(insertStep, Arrays.asList(recipeId, i + i, step.getStepDescription()));
+            executeInsert(insertStep, Arrays.asList(recipeId, i + 1, step.getStepDescription()));
         }
 
         return recipeId;
@@ -205,6 +205,8 @@ public class MySql {
                 st.setInt(paramIndex, (int) param);
             } else if (param instanceof String) {
                 st.setString(paramIndex, (String) param);
+            } else if (param == null){
+                st.setNull(paramIndex, java.sql.Types.NULL);
             }
         }
         return st;
