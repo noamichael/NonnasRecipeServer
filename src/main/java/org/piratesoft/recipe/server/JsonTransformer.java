@@ -20,6 +20,9 @@ public class JsonTransformer implements ResponseTransformer {
 
     @Override
     public String render(Object model) {
+        if(model instanceof String){
+            return (String) model;
+        }
         return gson.toJson(model);
     }
 
