@@ -86,6 +86,17 @@ public class RecipeEndpoint {
             justId.setId(id);
             return new RecipeResponse<>(justId);
         }), JSON);
+        
+        delete("/recipes/:id", sqlRoute((req, res, sql) -> {
+            int recipeId = Integer.valueOf(req.params(":id"));
+            int id = sql.deleteRecipe(recipeId);
+            if (id == -1) {
+                res.status(500);
+                return "Could not delete recipe. Unknown SQL error";
+            }
+            res.status(200);
+            return null;
+        }), JSON);
     }
 
     static InputStream getResource(String path) {

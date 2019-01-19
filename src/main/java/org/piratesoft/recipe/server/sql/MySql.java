@@ -82,6 +82,11 @@ public class MySql {
         return Optional.of(recipe);
     }
 
+    public int deleteRecipe(int id) {
+        deleteStepsAndIngredients(id);
+        return executeUpdate("DELETE FROM Recipe WHERE ID = ?", Arrays.asList(id));
+    }
+
     public int saveRecipe(Recipe recipe) {
         Integer id = recipe.getId();
         List<Object> insertAndUpdateArgs = new ArrayList<>();
@@ -108,26 +113,22 @@ public class MySql {
                 return -1;
             }
 
-            String deleteTemplate = "DELETE FROM %s WHERE recipeId = ?";
-
-            executeUpdate(String.format(deleteTemplate, "Ingredient"), Arrays.asList(id));
-            executeUpdate(String.format(deleteTemplate, "RecipeStep"), Arrays.asList(id));
+            deleteStepsAndIngredients(id);
 
         } else {
             String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize) VALUES(?,?,?,?)";
             id = executeInsert(insert, insertAndUpdateArgs);
         }
         final int recipeId = id;//need to use a final int for lambda
-        
+
         recipe.getIngredients().forEach(ingredient -> {
             String insertIngredient = "INSERT INTO Ingredient (recipeId, ingredientDescription) VALUES(?,?)";
             executeInsert(insertIngredient, Arrays.asList(recipeId, ingredient.getIngredientDescription()));
         });
-        
-        
-       List<RecipeStep> recipeSteps = recipe.getSteps();
-        
-        for(int i = 0; i < recipeSteps.size(); i++){
+
+        List<RecipeStep> recipeSteps = recipe.getSteps();
+
+        for (int i = 0; i < recipeSteps.size(); i++) {
             RecipeStep step = recipeSteps.get(i);
             String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES(?,?,?)";
             executeInsert(insertStep, Arrays.asList(recipeId, i + 1, step.getStepDescription()));
@@ -172,6 +173,13 @@ public class MySql {
         return recipe;
     }
 
+    void deleteStepsAndIngredients(int recipeId) {
+        String deleteTemplate = "DELETE FROM %s WHERE recipeId = ?";
+
+        executeUpdate(String.format(deleteTemplate, "Ingredient"), Arrays.asList(recipeId));
+        executeUpdate(String.format(deleteTemplate, "RecipeStep"), Arrays.asList(recipeId));
+    }
+
     //////
     // Helper SQL methods
     /////
@@ -205,7 +213,7 @@ public class MySql {
                 st.setInt(paramIndex, (int) param);
             } else if (param instanceof String) {
                 st.setString(paramIndex, (String) param);
-            } else if (param == null){
+            } else if (param == null) {
                 st.setNull(paramIndex, java.sql.Types.NULL);
             }
         }
