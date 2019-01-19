@@ -3,6 +3,8 @@ package org.piratesoft.recipe.server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import spark.Service;
+import static spark.Service.ignite;
 import static spark.Spark.*;
 
 /**
@@ -11,6 +13,9 @@ import static spark.Spark.*;
  */
 public class RecipeServer {
 
+    final int PUBLIC_PORT = 6789;
+    final int PRIVATE_PORT = 7890;
+    
     private Thread waitForInput;
 
     public static void main(String[] args) {
@@ -20,10 +25,11 @@ public class RecipeServer {
 
     public void startServer(String... args) {
         //ServerConfig config = readConfig();
-        final int PORT = 6789;
-        System.out.println("Starting server on port " + PORT);
-        port(6789);
-        RecipeEndpoint.setupEndpoints();
+        Service publicService = ignite().port(PUBLIC_PORT);
+        Service privateService = ignite().port(PRIVATE_PORT);
+
+        System.out.println(String.format("Starting server with ports {public: %s, private: %s}", PUBLIC_PORT, PRIVATE_PORT));
+        RecipeEndpoint.setupEndpoints(publicService, privateService);
         doWaitForInput();
     }
 

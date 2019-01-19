@@ -18,7 +18,7 @@ import spark.Request;
 import spark.Response;
 import spark.ResponseTransformer;
 import spark.Route;
-import static spark.Spark.*;
+import spark.Service;
 
 /**
  *
@@ -26,49 +26,31 @@ import static spark.Spark.*;
  */
 public class RecipeEndpoint {
 
-    public static void setupEndpoints() {
+    public static void setupEndpoints(Service publicService, Service privateService) {
 
         final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
-        options("/*", (request, response) -> {
+        publicService.options("/*", RecipeEndpoint::options);
+        privateService.options("/*", RecipeEndpoint::options);
 
-            String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
-            if (accessControlRequestHeaders != null) {
-                response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
-            }
+        publicService.before(RecipeEndpoint::before);
+        privateService.before(RecipeEndpoint::before);
 
-            String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
-            if (accessControlRequestMethod != null) {
-                response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
-            }
-
-            return "OK";
-        });
-
-        before((request, response) -> {
-            response.header("Access-Control-Allow-Origin", "*");
-            response.header("Access-Control-Request-Method", "GET,PUT,POST,DELETE,OPTIONS");
-            response.header("Access-Control-Allow-Headers", "*");
-            response.header("Access-Control-Allow-Credentials", "true");
-        });
-
-        //GET methods
+        //PUBLIC methods
         final ResponseTransformer JSON = new JsonTransformer();
 
-        get("/recipe-types", (req, res) -> {
+        publicService.get("/recipe-types", (req, res) -> {
             return new RecipeResponse<>(Arrays.asList(RecipeType.values()));
         }, JSON);
 
-        get("/nonna", RecipeEndpoint::serveFiles);
-        get("/nonna/*", RecipeEndpoint::serveFiles);
 
-        get("/recipes", sqlRoute((req, res, sql) -> {
+        publicService.get("/recipes", sqlRoute((req, res, sql) -> {
             int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
             int count = Integer.valueOf(req.queryParamOrDefault("count", "1000"));
             return sql.getRecipes(page, count, paramsToMap(req.queryMap()));
         }), JSON);
 
-        get("/recipes/:id", sqlRoute((req, res, sql) -> {
+        publicService.get("/recipes/:id", sqlRoute((req, res, sql) -> {
             int recipeId = Integer.valueOf(req.params(":id"));
             Optional<Recipe> recipeOptional = sql.getRecipe(recipeId);
             if (!recipeOptional.isPresent()) {
@@ -78,8 +60,10 @@ public class RecipeEndpoint {
             return new RecipeResponse<>(recipeOptional.get());
         }), JSON);
 
-        //Save Methods
-        post("/recipes", sqlRoute((req, res, sql) -> {
+        //Private method
+        privateService.get("/nonna", RecipeEndpoint::serveFiles);
+        privateService.get("/nonna/*", RecipeEndpoint::serveFiles);
+        privateService.post("/recipes", sqlRoute((req, res, sql) -> {
             Recipe recipe = gson.fromJson(req.body(), Recipe.class);
             int id = sql.saveRecipe(recipe);
             if (id == -1) {
@@ -90,8 +74,8 @@ public class RecipeEndpoint {
             justId.setId(id);
             return new RecipeResponse<>(justId);
         }), JSON);
-        
-        delete("/recipes/:id", sqlRoute((req, res, sql) -> {
+
+        privateService.delete("/recipes/:id", sqlRoute((req, res, sql) -> {
             int recipeId = Integer.valueOf(req.params(":id"));
             int id = sql.deleteRecipe(recipeId);
             if (id == -1) {
@@ -131,6 +115,27 @@ public class RecipeEndpoint {
         return "404 - Not Found";
     }
 
+    static Object options(Request request, Response response) {
+        String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
+        if (accessControlRequestHeaders != null) {
+            response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
+        }
+
+        String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
+        if (accessControlRequestMethod != null) {
+            response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
+        }
+
+        return "OK";
+    }
+
+    static void before(Request request, Response response) {
+        response.header("Access-Control-Allow-Origin", "*");
+        response.header("Access-Control-Request-Method", "GET,PUT,POST,DELETE,OPTIONS");
+        response.header("Access-Control-Allow-Headers", "*");
+        response.header("Access-Control-Allow-Credentials", "true");
+    }
+
     static Route sqlRoute(SQLEndpoint endpoint) {
         return (req, res) -> {
             MySql sql = new MySql();
@@ -141,14 +146,14 @@ public class RecipeEndpoint {
             }
         };
     }
-    
-    static Map<String, List<String>> paramsToMap(QueryParamsMap map){
+
+    static Map<String, List<String>> paramsToMap(QueryParamsMap map) {
         Map<String, List<String>> result = new HashMap<>();
-        
+
         map.toMap().forEach((key, values) -> {
             result.put(key, Arrays.asList(values));
         });
-                
+
         return result;
     }
 
