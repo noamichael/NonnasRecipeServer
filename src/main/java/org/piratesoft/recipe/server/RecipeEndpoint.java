@@ -2,11 +2,13 @@ package org.piratesoft.recipe.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.servlet.ServletOutputStream;
 import org.piratesoft.recipe.server.schema.Recipe;
 import org.piratesoft.recipe.server.schema.Recipe.RecipeType;
 import org.piratesoft.recipe.server.schema.RecipeResponse;
@@ -57,6 +59,9 @@ public class RecipeEndpoint {
             return new RecipeResponse<>(Arrays.asList(RecipeType.values()));
         }, JSON);
 
+        get("/nonna", RecipeEndpoint::serveFiles);
+        get("/nonna/*", RecipeEndpoint::serveFiles);
+
         get("/recipes", sqlRoute((req, res, sql) -> {
             int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
             int count = Integer.valueOf(req.queryParamOrDefault("count", "1000"));
@@ -96,6 +101,34 @@ public class RecipeEndpoint {
             res.status(200);
             return null;
         }), JSON);
+    }
+
+    static InputStream getResource(String path) {
+        return RecipeEndpoint.class.getClassLoader().getResourceAsStream("webapp" + path);
+    }
+
+    static Object serveFiles(Request req, Response res) throws Exception {
+        String requestUrl = req.pathInfo().replace("/nonna", "");
+        if (requestUrl.trim().isEmpty() || requestUrl.equals("/")) {
+            requestUrl = "/index.html";
+        }
+        InputStream resource = getResource(requestUrl);
+        if (resource == null) {
+            resource = getResource("/index.html");
+        }
+        if (resource != null) {
+            final ServletOutputStream os = res.raw().getOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = resource.read(buffer)) != -1) {
+                os.write(buffer, 0, len);
+            }
+            resource.close();
+            os.close();
+
+        }
+        res.status(404);
+        return "404 - Not Found";
     }
 
     static Route sqlRoute(SQLEndpoint endpoint) {
