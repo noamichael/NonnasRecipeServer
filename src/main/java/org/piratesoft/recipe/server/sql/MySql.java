@@ -5,8 +5,8 @@ import java.sql.DriverManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,18 +39,39 @@ public class MySql {
         }
     }
 
-    public RecipeResponse<List<Recipe>> getRecipes(int page, int count) {
+    public RecipeResponse<List<Recipe>> getRecipes(int page, int count, Map<String, List<String>> queryParams) {
         RecipeResponse<List<Recipe>> response = new RecipeResponse<>();
+        List<Object> params = new ArrayList<>();
+        String where = "";
+        String join = "";
+
+        if (queryParams.containsKey("recipeName")) {
+            List<String> recipeNames = queryParams.get("recipeName");
+            for (String recipeName : recipeNames) {
+                where = where.concat(" AND R.recipeName LIKE ?");
+                params.add("%" + recipeName + "%");
+            }
+        }
+
+        if (queryParams.containsKey("recipeType")) {
+            List<String> recipeTypes = queryParams.get("recipeType");
+            for (String recipeType : recipeTypes) {
+                where = where.concat(" AND R.recipeType = ?");
+                params.add(recipeType);
+            }
+        }
 
         int offset = count * (page - 1);
+        List<Object> paramsWithOffset = new ArrayList(params);
+        paramsWithOffset.addAll(Arrays.asList(count, offset));
         List<Recipe> pagedResult = executeQuery(
-                "SELECT * FROM Recipe LIMIT ? OFFSET ?",
-                Arrays.asList(count, offset),
+                String.format("SELECT R.* FROM Recipe R WHERE 1 = 1%s LIMIT ? OFFSET ? ORDER BY R.recipeName ASC", where),
+                paramsWithOffset,
                 this::resultSetToRecipe
         );
         int totalRecordCount = executeQuery(
-                "SELECT COUNT(ID) as totalRecordCount FROM Recipe",
-                Collections.emptyList(),
+                String.format("SELECT COUNT(R.ID) as totalRecordCount FROM Recipe R WHERE 1 = 1%s", where),
+                params,
                 rs -> rs.getInt("totalRecordCount")
         ).get(0);
 

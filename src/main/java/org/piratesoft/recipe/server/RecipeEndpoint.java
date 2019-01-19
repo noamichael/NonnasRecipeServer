@@ -3,11 +3,15 @@ package org.piratesoft.recipe.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.piratesoft.recipe.server.schema.Recipe;
 import org.piratesoft.recipe.server.schema.Recipe.RecipeType;
 import org.piratesoft.recipe.server.schema.RecipeResponse;
 import org.piratesoft.recipe.server.sql.MySql;
+import spark.QueryParamsMap;
 import spark.Request;
 import spark.Response;
 import spark.ResponseTransformer;
@@ -56,7 +60,7 @@ public class RecipeEndpoint {
         get("/recipes", sqlRoute((req, res, sql) -> {
             int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
             int count = Integer.valueOf(req.queryParamOrDefault("count", "1000"));
-            return sql.getRecipes(page, count);
+            return sql.getRecipes(page, count, paramsToMap(req.queryMap()));
         }), JSON);
 
         get("/recipes/:id", sqlRoute((req, res, sql) -> {
@@ -103,6 +107,16 @@ public class RecipeEndpoint {
                 sql.destroy();
             }
         };
+    }
+    
+    static Map<String, List<String>> paramsToMap(QueryParamsMap map){
+        Map<String, List<String>> result = new HashMap<>();
+        
+        map.toMap().forEach((key, values) -> {
+            result.put(key, Arrays.asList(values));
+        });
+                
+        return result;
     }
 
     @FunctionalInterface
