@@ -65,7 +65,7 @@ public class MySql {
         List<Object> paramsWithOffset = new ArrayList(params);
         paramsWithOffset.addAll(Arrays.asList(count, offset));
         List<Recipe> pagedResult = executeQuery(
-                String.format("SELECT R.* FROM Recipe R WHERE 1 = 1%s LIMIT ? OFFSET ? ORDER BY R.recipeName ASC", where),
+                String.format("SELECT R.* FROM Recipe R WHERE 1 = 1%s ORDER BY R.recipeName ASC LIMIT ? OFFSET ?", where),
                 paramsWithOffset,
                 this::resultSetToRecipe
         );
