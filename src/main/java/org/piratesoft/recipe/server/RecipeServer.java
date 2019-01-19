@@ -30,19 +30,20 @@ public class RecipeServer {
 
         System.out.println(String.format("Starting server with ports {public: %s, private: %s}", PUBLIC_PORT, PRIVATE_PORT));
         RecipeEndpoint.setupEndpoints(publicService, privateService);
-        doWaitForInput();
+        doWaitForInput(publicService, privateService);
     }
 
     private void doStop() {
         this.waitForInput.interrupt();
     }
 
-    private void stopServer() {
+    private void stopServer(Service publicService,  Service privateService) {
         System.out.println("Stopping the server...");
-        stop();
+        publicService.stop();
+        privateService.stop();
     }
 
-    public void doWaitForInput() {
+    public void doWaitForInput(Service publicService,  Service privateService) {
         this.waitForInput = new Thread(() -> {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String input;
@@ -57,7 +58,7 @@ public class RecipeServer {
                     break;
                 }
             } while (!isStopCommand(input) && !Thread.interrupted());
-            this.stopServer();
+            this.stopServer(publicService, privateService);
         });
         this.waitForInput.start();
     }
