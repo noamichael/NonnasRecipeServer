@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import spark.Service;
 import static spark.Service.ignite;
-import static spark.Spark.*;
 
 /**
  *

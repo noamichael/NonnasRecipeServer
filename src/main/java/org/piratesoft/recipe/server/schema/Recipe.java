@@ -19,6 +19,8 @@ public class Recipe {
     private Integer servingSize;
     private List<RecipeStep> steps;
     private List<Ingredient> ingredients;
+    private Boolean weightWatchers;
+    private Integer points;
 
     /**
      * @return the id
@@ -116,5 +118,33 @@ public class Recipe {
      */
     public void setIngredients(List<Ingredient> ingredients) {
         this.ingredients = ingredients;
+    }
+
+    /**
+     * @return the weightWatchers
+     */
+    public Boolean getWeightWatchers() {
+        return weightWatchers;
+    }
+
+    /**
+     * @param weightWatchers the weightWatchers to set
+     */
+    public void setWeightWatchers(Boolean weightWatchers) {
+        this.weightWatchers = weightWatchers;
+    }
+
+    /**
+     * @return the points
+     */
+    public Integer getPoints() {
+        return points;
+    }
+
+    /**
+     * @param points the points to set
+     */
+    public void setPoints(Integer points) {
+        this.points = points;
     }
 }
