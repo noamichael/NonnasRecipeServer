@@ -61,6 +61,14 @@ public class MySql {
             }
         }
 
+        if (queryParams.containsKey("weightWatchers")) {
+            String weightWatchers = queryParams.get("weightWatchers").get(0);
+            if (!"null".equals(weightWatchers)) {
+                where = where.concat(" AND R.weightWatchers = ?");
+                params.add(Boolean.valueOf(weightWatchers.trim()));
+            }
+        }
+
         int offset = count * (page - 1);
         List<Object> paramsWithOffset = new ArrayList(params);
         paramsWithOffset.addAll(Arrays.asList(count, offset));
@@ -115,7 +123,9 @@ public class MySql {
                 recipe.getRecipeName(),
                 recipe.getRecipeType().toString().toUpperCase(),
                 recipe.getCookTime(),
-                recipe.getServingSize()
+                recipe.getServingSize(),
+                recipe.getWeightWatchers(),
+                recipe.getPoints()
         ));
         if (id != null) {
 
@@ -123,7 +133,9 @@ public class MySql {
                     + "recipeName = ?, "
                     + "recipeType = ?, "
                     + "cookTime = ?, "
-                    + "servingSize = ? "
+                    + "servingSize = ?, "
+                    + "weightWatchers = ?, "
+                    + "points = ? "
                     + "WHERE ID = ?";
 
             insertAndUpdateArgs.add(id);
@@ -137,7 +149,7 @@ public class MySql {
             deleteStepsAndIngredients(id);
 
         } else {
-            String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize) VALUES(?,?,?,?)";
+            String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize, weightWatchers, points) VALUES(?,?,?,?,?,?)";
             id = executeInsert(insert, insertAndUpdateArgs);
         }
         final int recipeId = id;//need to use a final int for lambda
@@ -190,6 +202,8 @@ public class MySql {
         recipe.setRecipeName(rs.getString("recipeName"));
         recipe.setCookTime(rs.getString("cookTime"));
         recipe.setServingSize(rs.getInt("servingSize"));
+        recipe.setWeightWatchers(rs.getBoolean("weightWatchers"));
+        recipe.setPoints(rs.getInt("points"));
 
         return recipe;
     }
@@ -234,6 +248,8 @@ public class MySql {
                 st.setInt(paramIndex, (int) param);
             } else if (param instanceof String) {
                 st.setString(paramIndex, (String) param);
+            } else if(param instanceof Boolean) {
+                st.setBoolean(paramIndex, (boolean) param);
             } else if (param == null) {
                 st.setNull(paramIndex, java.sql.Types.NULL);
             }

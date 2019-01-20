@@ -10,8 +10,10 @@ CREATE TABLE Recipe
 	recipeType  VARCHAR(50) NOT NULL,
 	recipeName  VARCHAR(255) NOT NULL,
 	cookTime  VARCHAR (25) NULL,
-	servingSize  INT,
-    PRIMARY KEY (id)
+	servingSize  INT NULL,
+        weightWatchers BOOLEAN NULL DEFAULT FALSE,
+        points INT NULL,
+        PRIMARY KEY (id)
 ) ;
 
  CREATE TABLE RecipeStep 
@@ -79,5 +81,5 @@ VALUES (2, "3 tbl dill");
 INSERT INTO Ingredient (recipeId, ingredientDescription)
 VALUES (2, "1 cup of extra love");
 
-
-
+ALTER TABLE Recipe ADD COLUMN weightWatchers BOOLEAN NULL DEFAULT FALSE;
+ALTER TABLE Recipe ADD COLUMN points INT NULL;
