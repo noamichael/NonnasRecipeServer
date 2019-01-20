@@ -14,6 +14,7 @@ import org.piratesoft.recipe.server.schema.Ingredient;
 import org.piratesoft.recipe.server.schema.Recipe;
 import org.piratesoft.recipe.server.schema.RecipeResponse;
 import org.piratesoft.recipe.server.schema.RecipeStep;
+import org.piratesoft.recipe.server.util.StringUtil;
 
 /**
  *
@@ -155,6 +156,9 @@ public class MySql {
         final int recipeId = id;//need to use a final int for lambda
 
         recipe.getIngredients().forEach(ingredient -> {
+            if (StringUtil.isNullOrEmpty(ingredient.getIngredientDescription())) {
+                return;//this is equivlent to continue
+            }
             String insertIngredient = "INSERT INTO Ingredient (recipeId, ingredientDescription) VALUES(?,?)";
             executeInsert(insertIngredient, Arrays.asList(recipeId, ingredient.getIngredientDescription()));
         });
@@ -163,6 +167,9 @@ public class MySql {
 
         for (int i = 0; i < recipeSteps.size(); i++) {
             RecipeStep step = recipeSteps.get(i);
+            if (StringUtil.isNullOrEmpty(step.getStepDescription())) {
+                continue;
+            }
             String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES(?,?,?)";
             executeInsert(insertStep, Arrays.asList(recipeId, i + 1, step.getStepDescription()));
         }
@@ -248,7 +255,7 @@ public class MySql {
                 st.setInt(paramIndex, (int) param);
             } else if (param instanceof String) {
                 st.setString(paramIndex, (String) param);
-            } else if(param instanceof Boolean) {
+            } else if (param instanceof Boolean) {
                 st.setBoolean(paramIndex, (boolean) param);
             } else if (param == null) {
                 st.setNull(paramIndex, java.sql.Types.NULL);
