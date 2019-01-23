@@ -16,7 +16,7 @@ public class Recipe {
     private RecipeType recipeType;
     private String recipeName;
     private String cookTime;
-    private Integer servingSize;
+    private String servingSize;
     private List<RecipeStep> steps;
     private List<Ingredient> ingredients;
     private Boolean weightWatchers;
@@ -81,14 +81,14 @@ public class Recipe {
     /**
      * @return the servingSize
      */
-    public Integer getServingSize() {
+    public String getServingSize() {
         return servingSize;
     }
 
     /**
      * @param servingSize the servingSize to set
      */
-    public void setServingSize(Integer servingSize) {
+    public void setServingSize(String servingSize) {
         this.servingSize = servingSize;
     }
 
