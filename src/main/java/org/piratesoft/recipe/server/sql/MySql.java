@@ -208,7 +208,7 @@ public class MySql {
         recipe.setRecipeType(Recipe.RecipeType.valueOf(rs.getString("recipeType").toUpperCase()));
         recipe.setRecipeName(rs.getString("recipeName"));
         recipe.setCookTime(rs.getString("cookTime"));
-        recipe.setServingSize(rs.getInt("servingSize"));
+        recipe.setServingSize(rs.getString("servingSize"));
         recipe.setWeightWatchers(rs.getBoolean("weightWatchers"));
         recipe.setPoints(rs.getInt("points"));
 
