@@ -10,7 +10,7 @@ CREATE TABLE Recipe
 	recipeType  VARCHAR(50) NOT NULL,
 	recipeName  VARCHAR(255) NOT NULL,
 	cookTime  VARCHAR (25) NULL,
-	servingSize  INT NULL,
+	servingSize  VARCHAR(255) NULL,
         weightWatchers BOOLEAN NULL DEFAULT FALSE,
         points INT NULL,
         PRIMARY KEY (id)
