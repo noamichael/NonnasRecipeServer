@@ -1,0 +1,26 @@
+<div class="nr-navbar">
+    <button pButton type="button" label="Back" icon="pi pi-arrow-left" (click)="back()"></button>
+    <button pButton type="button" label="Edit" icon="pi pi-pencil" class="ui-button-info edit" (click)="edit()"></button>
+  </div>
+<p-card>
+  <div class="recipe">
+    <h2>{{recipe.recipeName}}</h2>
+    <small>
+      {{recipe.recipeType}}
+      <span [hidden]="!recipe.servingSize">- Serves {{recipe.servingSize}}</span>
+      <span [hidden]="!recipe.weightWatchers">
+        - Weight Watchers
+        <span [hidden]="!recipe.points">({{recipe.points}} Points)</span>
+      </span>
+      <span [hidden]="!recipe.cookTime">- Cook Time: {{recipe.cookTime}}</span>
+    </small>
+    <ul class="ingredients">
+      <li><b>Ingredients</b></li>
+      <li *ngFor="let ingredient of recipe.ingredients">{{ingredient.ingredientDescription}}</li>
+    </ul>
+    <ul class="steps">
+      <li><b>Steps</b></li>
+      <li *ngFor="let step of recipe.steps">{{step.stepDescription}}</li>
+    </ul>
+  </div>
+</p-card>

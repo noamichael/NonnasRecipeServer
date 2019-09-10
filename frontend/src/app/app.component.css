@@ -1,0 +1,11 @@
+h1 {
+    margin: 0;
+    color: white;
+}
+
+.header {
+    background: #5E007F;
+    padding: 1.5em;
+    display: flex;
+    justify-content: space-between;
+}
