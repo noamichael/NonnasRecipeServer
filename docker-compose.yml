@@ -1,0 +1,26 @@
+version: '3'
+services:
+  frontend:
+    build: ./frontend
+    ports:
+    - "8080:8080"
+    environment:
+      PUBLIC_API: backend:6789
+      PRIVATE_API: backend:7890
+  backend:
+    build: ./backend
+    ports:
+      - "6789:6789" #Only expose public port
+    environment:
+      DATABASE_HOST: database
+  database:
+    build: ./database
+    environment:
+      MYSQL_ROOT_PASSWORD: .HTDoaahmou333.
+      MYSQL_USER: mysql_user
+      MYSQL_PASSWORD: .HTDoaahmou333.
+      MYSQL_DATABASE: NonnasRecipes
+    volumes:
+    - mysql-data:/var/lib/mysql
+volumes:
+  mysql-data:

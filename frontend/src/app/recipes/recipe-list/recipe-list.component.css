@@ -1,0 +1,17 @@
+.table-header:after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.table-actions {
+    float: right;
+}
+
+.table-filter {
+    width: 100%;
+}
+
+::ng-deep p-table .ui-table .ui-table-wrapper table{
+    table-layout: auto;
+}
