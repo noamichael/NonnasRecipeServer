@@ -25,7 +25,7 @@
             "styles": [
               "node_modules/primeicons/primeicons.css",
               "node_modules/primeng/resources/primeng.min.css",
-              "node_modules/primeng/resources/themes/rhea/theme.css",
+              "node_modules/primeng/resources/themes/nova-dark/theme.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -60,7 +60,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "nonnas-recipes:build"
+            "browserTarget": "nonnas-recipes:build",
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

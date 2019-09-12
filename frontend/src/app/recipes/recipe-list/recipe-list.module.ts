@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { TableModule } from 'primeng/table';
+import { DataViewModule } from 'primeng/dataview';
+import { CardModule } from 'primeng/card';
 import { RecipeListComponent } from './recipe-list.component';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -24,7 +25,8 @@ import { RecipesResolver } from '../recipes.component';
     ]),
     CommonModule,
     FormsModule,
-    TableModule,
+    DataViewModule,
+    CardModule,
     ButtonModule,
     InputTextModule,
     DropdownModule,

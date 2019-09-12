@@ -27,7 +27,7 @@ export class RecipeEntryComponent implements OnInit {
 
   recipe: Recipe
 
-  @ViewChild(NgForm)
+  @ViewChild(NgForm, { static: true })
   form: NgForm
 
   constructor(
@@ -107,7 +107,7 @@ export class RecipeEntryComponent implements OnInit {
       accept: () => {
         this.recipe = { ingredients: [{}], steps: [{}] };
         this.recipeType = null;
-        this.router.navigate(['../../', 'new'], { relativeTo: this.route });
+        this.router.navigate(['../../', 'new', 'edit'], { relativeTo: this.route });
         form.form.markAsPristine();
       }
     });
