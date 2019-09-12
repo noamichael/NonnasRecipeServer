@@ -6,7 +6,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 @NgModule({
   declarations: [
@@ -18,7 +18,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     FormsModule,
     AppRoutingModule,
     HttpClientModule,
-    ProgressSpinnerModule
+    ProgressBarModule
   ],
   providers: [],
   bootstrap: [AppComponent]

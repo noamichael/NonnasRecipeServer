@@ -1,17 +1,59 @@
-.table-header:after {
-    content: "";
-    clear: both;
-    display: table;
+.table-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
 }
 
 .table-actions {
-    float: right;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.table-actions > button {
+    margin-right: 1em;
+}
+
+.table-filters {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 .table-filter {
     width: 100%;
 }
 
-::ng-deep p-table .ui-table .ui-table-wrapper table{
-    table-layout: auto;
+p-card.recipe-card {
+    width: 100%;
+    margin-bottom: 1em;
+    cursor: pointer;
+}
+
+::ng-deep p-card.recipe-card .ui-card:hover {
+    cursor: pointer;
+    background: #eaeaea;
+}
+
+.recipe-fields {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.recipe-field {
+    display: flex;
+}
+
+::ng-deep body .ui-dataview .ui-dataview-header {
+    border-radius: 0px;
+}
+
+::ng-deep .ui-card-title {
+    color: teal;
+}
+
+@media screen and (max-width: 900px) {
+    .recipe-fields {
+        flex-direction: column;
+    }
 }

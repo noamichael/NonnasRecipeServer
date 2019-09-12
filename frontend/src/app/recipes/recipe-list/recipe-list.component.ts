@@ -3,10 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RecipeResponse, TypeOption } from '../../recipe.service';
 import { Recipe } from '../../schema/recipe';
 import { RecipeTableService } from '../recipe-table.service';
-import { Subscription } from 'rxjs';
-import { Table } from 'primeng/table';
 import { Utils } from 'src/app/utils';
 import { LazyLoadEvent } from 'primeng/api';
+import { DataView } from 'primeng/dataview';
 
 interface Filters {
   recipeName?: string,
@@ -53,8 +52,8 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       }
       this.filters.recipeType = this.recipeTypes.filter(rt => rt.value == params.recipeType)[0];
     });
-    this.doFilter = Utils.debounce((field: string, dt: Table) => {
-      dt.filter(this.filters[field], field, 'equals');
+    this.doFilter = Utils.debounce((field: string, dt: DataView) => {
+      this.onLazyLoad({ first: 0, rows: this.recipes.count });
     }, 500);
   }
 
@@ -75,15 +74,15 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     this.openRecipe(recipe);
   }
 
-  clearFilters(table: Table) {
+  clearFilters(table: DataView) {
     this.filters.recipeType = null;
     this.filters.recipeName = null;
     this.filters.weightWatchers = null;
     this.filters.page = 1;
-    table.reset();
+    this.onLazyLoad({ first: 0, rows: this.recipes.count });
   }
 
-  onFilterChange(field: string, dt: Table) {
+  onFilterChange(field: string, dt: DataView) {
     this.doFilter(field, dt);
   }
 

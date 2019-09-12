@@ -18,11 +18,11 @@ import { RouterModule } from '@angular/router';
         children: [
           {
             path: '',
-            loadChildren: './recipe-list/recipe-list.module#RecipeListModule'
+            loadChildren: () => import('./recipe-list/recipe-list.module').then(m => m.RecipeListModule)
           },
           {
             path: ':id',
-            loadChildren: './recipe-entry/recipe-entry.module#RecipeEntryModule'
+            loadChildren: () => import('./recipe-entry/recipe-entry.module').then(m => m.RecipeEntryModule)
           }
         ]
       }

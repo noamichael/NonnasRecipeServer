@@ -19,7 +19,7 @@ export class RecipesComponent implements OnInit {
 
   ngOnInit() {
     this.route.data.subscribe(data => {
-      const NULL_SELECT = { label: '-- Select --', value: null }
+      const NULL_SELECT = { label: '-- Recipe Type --', value: null }
       const recipeTypes = data.recipeTypes.data.map(s => { return { label: s, value: s } });
       recipeTypes.unshift(NULL_SELECT);
       this.recipeTableService.recipeTypes = recipeTypes;

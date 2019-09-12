@@ -1,0 +1,18 @@
+{
+  "/public-api/*": {
+    "target": "http://localhost:6789",
+    "changeOrigin": true,
+    "secure": false,
+    "pathRewrite": {
+      "^/public-api": ""
+    }
+  },
+  "/private-api/*": {
+    "target": "http://localhost:7890",
+    "changeOrigin": true,
+    "secure": false,
+    "pathRewrite": {
+      "^/private-api": ""
+    }
+  }
+}
