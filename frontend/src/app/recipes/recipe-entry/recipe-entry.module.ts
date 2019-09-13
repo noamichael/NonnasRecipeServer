@@ -10,13 +10,13 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SharedModule } from '../../shared/shared.module';
-import { RecipeEntryComponent, RecipeResolver, CanDeactivateEntry } from './recipe-entry.component';
+import { RecipeEntryComponent, RecipeResolver, CanDeactivateEntry, CanActivateEntry } from './recipe-entry.component';
 import { RecipeDisplayComponent } from './recipe-display/recipe-display.component';
 import { CardModule } from 'primeng/card';
 
 @NgModule({
   declarations: [RecipeEntryComponent, RecipeDisplayComponent],
-  providers: [RecipeResolver, CanDeactivateEntry],
+  providers: [RecipeResolver, CanActivateEntry, CanDeactivateEntry],
   imports: [
     RouterModule.forChild([
       {
@@ -32,6 +32,7 @@ import { CardModule } from 'primeng/card';
           {
             path: 'edit',
             component: RecipeEntryComponent,
+            canActivate: [CanActivateEntry],
             canDeactivate: [CanDeactivateEntry]
           }
         ]

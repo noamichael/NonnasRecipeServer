@@ -8,6 +8,12 @@ services:
     environment:
       PUBLIC_API: backend:6789
       PRIVATE_API: backend:7890
+  gateway:
+    build: ./gateway
+    ports:
+      - "8282:8282"
+    environment:
+      FRONTEND_HOST: frontend:8080
   backend:
     build: ./backend
     restart: unless-stopped

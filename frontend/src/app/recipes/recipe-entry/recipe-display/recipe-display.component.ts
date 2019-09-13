@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Recipe } from 'src/app/schema/recipe';
 import { ActivatedRoute, Router } from '@angular/router';
+import { RecipeService } from 'src/app/recipe.service';
 
 @Component({
   selector: 'nr-recipe-display',
@@ -13,7 +14,8 @@ export class RecipeDisplayComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private recipeService: RecipeService
   ) { }
 
   ngOnInit() {
@@ -29,5 +31,10 @@ export class RecipeDisplayComponent implements OnInit {
   edit(){
     this.router.navigate(['./edit'], {relativeTo: this.route});
   }
+
+  get gateway() {
+    return this.recipeService.gateway;
+  }
+
 
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit, Injectable, ViewChild } from '@angular/core';
-import { CanDeactivate } from '@angular/router';
+import { CanDeactivate, CanActivate } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { RecipeService, RecipeResponse, TypeOption } from '../../recipe.service';
 import { ConfirmationService } from 'primeng/api';
@@ -180,6 +180,10 @@ export class RecipeEntryComponent implements OnInit {
     });
   }
 
+  get gateway() {
+    return this.recipeService.gateway;
+  }
+
 }
 
 @Injectable()
@@ -214,5 +218,22 @@ export class CanDeactivateEntry implements CanDeactivate<RecipeEntryComponent> {
     nextState: RouterStateSnapshot
   ): Promise<boolean> {
     return component.canDeactivate();
+  }
+}
+
+@Injectable()
+export class CanActivateEntry implements CanActivate {
+
+  constructor(
+    private recipeService: RecipeService,
+    private router: Router
+  ) { }
+
+  canActivate(route: ActivatedRouteSnapshot) {
+    debugger;
+    if (this.recipeService.gateway) {
+      this.router.navigate(['recipes', route.params.id]);
+    }
+    return !this.recipeService.gateway;
   }
 }
