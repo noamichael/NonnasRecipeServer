@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { RecipeResponse, TypeOption } from '../../recipe.service';
+import { RecipeResponse, TypeOption, RecipeService } from '../../recipe.service';
 import { Recipe } from '../../schema/recipe';
 import { RecipeTableService } from '../recipe-table.service';
 import { Utils } from 'src/app/utils';
@@ -29,6 +29,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
 
   constructor(
     private recipeTableService: RecipeTableService,
+    private recipeService: RecipeService,
     private route: ActivatedRoute,
     private router: Router
   ) { }
@@ -106,5 +107,10 @@ export class RecipeListComponent implements OnInit, OnDestroy {
 
     this.router.navigate(['./', filters], { relativeTo: this.route });
   }
+
+  get gateway() {
+    return this.recipeService.gateway;
+  }
+
 
 }

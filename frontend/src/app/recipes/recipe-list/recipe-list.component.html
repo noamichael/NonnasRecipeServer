@@ -6,7 +6,7 @@
         Recipes
       </div>
       <div class="table-actions">
-        <button pButton type="button" label="Add" (click)="openRecipe()" icon="pi pi-plus"
+        <button pButton type="button" *ngIf="!gateway" label="Add" (click)="openRecipe()" icon="pi pi-plus"
           class="ui-button-success"></button>
         <button pButton type="button" label="Clear" (click)="clearFilters(dv)" icon="pi pi-times"
           class="ui-button-primary"></button>

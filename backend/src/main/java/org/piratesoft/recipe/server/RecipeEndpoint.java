@@ -43,6 +43,10 @@ public class RecipeEndpoint {
             return new RecipeResponse<>(Arrays.asList(RecipeType.values()));
         }, JSON);
 
+        publicService.get("/gateway", (req, res) -> {
+            return "{\"active\": false}";
+        }, JSON);
+
 
         publicService.get("/recipes", sqlRoute((req, res, sql) -> {
             int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
