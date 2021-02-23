@@ -3,11 +3,48 @@ html, body, body nr-app .ui-widget {
     font-size: 16px;
 }
 
+label {
+    font-weight: bold;
+}
+
 body {
     margin: 0px;
+}
+
+.p-progressbar .p-progressbar-value {
+    background: #007ad9;
 }
 
 .nr-navbar {
     background: #333333;
     padding: 0.5em;
+}
+
+.page-actions {
+    position: absolute;
+    display: flex;
+    justify-content: flex-end;
+    top: 0.3em;
+    right: 0;
+}
+
+.page-actions > button {
+    margin-right: 1em;
+}
+
+.p-card .p-card-title {
+    color: darkcyan;
+}
+
+.p-dataview .p-dataview-header {
+    background: #333;
+}
+
+.recipe-card .p-card {
+    margin-bottom: 1em;
+}
+
+.recipe-card .p-card:hover {
+    cursor: pointer;
+    background: #eaeaea;
 }
