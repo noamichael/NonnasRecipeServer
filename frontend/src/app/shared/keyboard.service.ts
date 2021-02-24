@@ -29,7 +29,7 @@ export class KeyboardService {
 
     constructor(private router: Router) {
         router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(e => {
-            this.close();
+            //this.close();
         });
     }
 
