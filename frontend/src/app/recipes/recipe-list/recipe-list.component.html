@@ -1,20 +1,12 @@
+<div class="page-actions">
+  <button pButton type="button" *ngIf="!gateway" label="Add" (click)="openRecipe()" icon="pi pi-plus"
+    class="p-button-success"></button>
+  <button pButton type="button" label="Clear" (click)="clearFilters(dv)" icon="pi pi-times"
+    class="p-button-primary"></button>
+</div>
 <p-dataView #dv (onLazyLoad)="onLazyLoad($event)" [value]="recipes.data" [lazy]="true" [paginator]="true"
-  [rows]="recipes.count" dataKey="id" [totalRecords]="recipes.totalRecordCount" paginatorPosition="both">
+  [rows]="recipes.count" dataKey="id" [totalRecords]="recipes.totalRecordCount" paginatorPosition="bottom">
   <p-header>
-    <div class="table-header">
-      <div class="table-caption">
-        Recipes
-      </div>
-      <div class="table-actions">
-        <button pButton type="button" *ngIf="!gateway" label="Add" (click)="openRecipe()" icon="pi pi-plus"
-          class="ui-button-success"></button>
-        <button pButton type="button" label="Clear" (click)="clearFilters(dv)" icon="pi pi-times"
-          class="ui-button-primary"></button>
-      </div>
-    </div>
-    <div>
-      <hr>
-    </div>
     <div class="table-filters">
       <div>
         <input type="text" class="table-filter" [(ngModel)]="filters.recipeName"
@@ -36,23 +28,23 @@
     <p-card class="recipe-card" [header]="recipe.recipeName" (click)="onRowSelect(recipe)">
       <div class="recipe-fields">
         <div class="recipe-field">
-          <div>Type: </div>
+          <div>Type:&nbsp;</div>
           <div><b>{{recipe.recipeType}}</b></div>
         </div>
         <div class="recipe-field">
-          <div>Cook Time: </div>
+          <div>Cook Time:&nbsp;</div>
           <div><b>{{recipe.cookTime || 'N/A'}}</b></div>
         </div>
         <div class="recipe-field">
-          <div>Serving: </div>
+          <div>Serving:&nbsp;</div>
           <div><b>{{recipe.servingSize || 'N/A'}}</b></div>
         </div>
         <div class="recipe-field">
-          <div>WW: </div>
+          <div>WW:&nbsp;</div>
           <div><b>{{recipe.weightWatchers ? 'Yes' : 'No'}}</b></div>
         </div>
         <div class="recipe-field">
-          <div>Pts.: </div>
+          <div>Pts.:&nbsp;</div>
           <div><b>{{recipe.points || 'N/A'}}</b></div>
         </div>
       </div>

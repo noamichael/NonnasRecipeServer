@@ -1,38 +1,23 @@
-.table-header {
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-}
-
-.table-actions {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.table-actions > button {
-    margin-right: 1em;
-}
-
 .table-filters {
     display: flex;
     width: 100%;
     flex-wrap: wrap;
     justify-content: space-between;
+    align-items: center;
+}
+
+p-tristatecheckbox {
+    color: white;
 }
 
 .table-filter {
     width: 100%;
 }
 
-p-card.recipe-card {
+.recipe-card {
     width: 100%;
     margin-bottom: 1em;
     cursor: pointer;
-}
-
-::ng-deep p-card.recipe-card .ui-card:hover {
-    cursor: pointer;
-    background: #eaeaea;
 }
 
 .recipe-fields {

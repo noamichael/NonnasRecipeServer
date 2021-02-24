@@ -6,3 +6,31 @@ label {
 .form-control {
     width: 100%;
 }
+
+.row {
+    display: flex;
+    margin-bottom: 1em;
+}
+
+.sm-6-md-12 {
+    width: 50%;
+}
+
+.form-container {
+    width: 83.3333%;
+    margin: 0 auto;
+}
+
+p-fieldset {
+    width: 100%;
+}
+
+@media screen and (max-width: 700px) {
+    .sm-6-md-12 {
+        width: 100%;
+    }
+
+    .form-container {
+        width: 100%;
+    }
+}
