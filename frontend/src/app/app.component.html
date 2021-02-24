@@ -8,3 +8,11 @@
   <p-progressBar [hidden]="loading" [showValue]="false" [style]="{height: '0.25em'}" value="100"></p-progressBar>
 </div>
 <router-outlet></router-outlet>
+<div class="keyboard-wrapper">
+  <button pButton icon="pi pi-times" (click)="closeKeyboard()"></button>
+  <div class="simple-keyboard"></div>
+</div>
+<label>
+  <input type="checkbox" name="onScreenKeyboard" (ngModelChange)="onEnabledChange()" [(ngModel)]="keyboardService.enabled"/>
+  On Screen Keyboard
+</label>
