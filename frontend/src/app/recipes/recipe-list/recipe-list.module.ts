@@ -10,6 +10,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { FormsModule } from '@angular/forms';
 import { TriStateCheckboxModule } from 'primeng/tristatecheckbox';
 import { RecipesResolver } from '../recipes.component';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 @NgModule({
   declarations: [RecipeListComponent],
@@ -30,7 +31,8 @@ import { RecipesResolver } from '../recipes.component';
     ButtonModule,
     InputTextModule,
     DropdownModule,
-    TriStateCheckboxModule
+    TriStateCheckboxModule,
+    SharedModule
   ]
 })
 export class RecipeListModule { }

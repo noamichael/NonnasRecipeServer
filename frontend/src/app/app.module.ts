@@ -8,6 +8,7 @@ import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { RecipeService } from './recipe.service';
+import { ButtonModule } from 'primeng/button';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { RecipeService } from './recipe.service';
     FormsModule,
     AppRoutingModule,
     HttpClientModule,
-    ProgressBarModule
+    ProgressBarModule,
+    ButtonModule
   ],
   providers: [
     RecipeService,

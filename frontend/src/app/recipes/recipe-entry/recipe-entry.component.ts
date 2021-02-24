@@ -230,7 +230,6 @@ export class CanActivateEntry implements CanActivate {
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot) {
-    debugger;
     if (this.recipeService.gateway) {
       this.router.navigate(['recipes', route.params.id]);
     }

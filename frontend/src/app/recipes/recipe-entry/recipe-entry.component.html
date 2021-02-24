@@ -1,92 +1,92 @@
 <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
-<div class="nr-navbar">
+<div class="page-actions">
   <button pButton type="button" label="Back" icon="pi pi-arrow-left" (click)="back()"></button>
 </div>
 <p-card>
-  <div class="ui-g">
-    <div class="ui-g-12 ui-md-10" style="margin: 0 auto;">
+  <div class="row">
+    <div class="form-container">
       <form #form="ngForm">
         <p-panel header="Edit Recipe">
-          <div class="ui-g">
-            <div class="ui-g-12 ui-md-6">
+          <div class="row">
+            <div class="sm-6-md-12">
               <label for="recipeName">Recipe Name</label>
               <input id="recipeName" class="form-control" type="text" name="recipeName" [(ngModel)]="recipe.recipeName"
                 pInputText required>
+                {{recipe.recipeName}}
             </div>
           </div>
-          <div class="ui-g">
-            <div class="ui-g-12 ui-md-6">
+          <div class="row">
+            <div class="sm-6-md-12">
               <label>Recipe Type</label>
               <p-dropdown [options]="recipeTypes" name="recipeType" [style]="{width: '100%'}" [(ngModel)]="recipeType"
                 optionLabel="label" required>
               </p-dropdown>
             </div>
           </div>
-          <div class="ui-g">
-            <div class="ui-g-12 ui-md-6">
+          <div class="row">
+            <div class="sm-6-md-12">
               <label for="cookTime">Cook Time</label>
               <input id="cookTime" class="form-control" type="text" name="cookTime" [(ngModel)]="recipe.cookTime"
                 pInputText>
             </div>
           </div>
-          <div class="ui-g">
-            <div class="ui-g-12 ui-md-6">
+          <div class="row">
+            <div class="sm-6-md-12">
               <label for="servingSize">Serving Size</label>
-              <input id="servingSize" class="form-control" type="text" name="servingSize" [(ngModel)]="recipe.servingSize"
-                pInputText>
+              <input id="servingSize" class="form-control" type="text" name="servingSize"
+                [(ngModel)]="recipe.servingSize" pInputText>
             </div>
           </div>
-          <div class="ui-g">
-            <div class="ui-g-12 ui-md-6">
-              <p-checkbox [(ngModel)]="recipe.weightWatchers" (ngModelChange)="onWeightWatchersChange($event)" name="weightWatchers"
-                label="Weight Watchers" [binary]="true"></p-checkbox>
+          <div class="row">
+            <div class="sm-6-md-12">
+              <p-checkbox [(ngModel)]="recipe.weightWatchers" (ngModelChange)="onWeightWatchersChange($event)"
+                name="weightWatchers" label="Weight Watchers" [binary]="true"></p-checkbox>
             </div>
           </div>
-          <div class="ui-g" *ngIf="recipe.weightWatchers">
-            <div class="ui-g-12 ui-md-6">
+          <div class="row" *ngIf="recipe.weightWatchers">
+            <div class="sm-6-md-12">
               <label for="points">Points</label>
               <input id="points" class="form-control" type="number" name="points" [(ngModel)]="recipe.points"
                 pInputText>
             </div>
           </div>
-          <div class="ui-g">
-            <div class="ui-g-12">
-              <p-fieldset>
-                <p-header>Ingredients</p-header>
-                <div class="ui-inputgroup" *ngFor="let ingredient of recipe.ingredients;let index = index;trackBy: trackByIndex;">
-                  <input placeholder="Ingredient name" [nrFocus]="ingredientFocusIndex == index" class="form-control"
-                    type="text" name="ingredients-{{index}}" (keyup.enter)="addIngredient(index)" [(ngModel)]="ingredient.ingredientDescription"
-                    pInputText>
-                  <button pButton type="button" icon="pi pi-times" [disabled]="index == 0" (click)="removeIngredient(ingredient)"
-                    class="ui-button-danger">
-                  </button>
-                </div>
-              </p-fieldset>
-            </div>
+          <div class="row">
+            <p-fieldset>
+              <p-header>Ingredients</p-header>
+              <div class="p-inputgroup"
+                *ngFor="let ingredient of recipe.ingredients;let index = index;trackBy: trackByIndex;">
+                <input placeholder="Ingredient name" [nrFocus]="ingredientFocusIndex == index" class="form-control"
+                  type="text" name="ingredients-{{index}}" (keyup.enter)="addIngredient(index)"
+                  [(ngModel)]="ingredient.ingredientDescription" pInputText>
+                <button pButton type="button" icon="pi pi-times" [disabled]="index == 0"
+                  (click)="removeIngredient(ingredient)" class="p-button-danger">
+                </button>
+              </div>
+            </p-fieldset>
           </div>
-          <div class="ui-g">
-            <div class="ui-g-12">
-              <p-fieldset>
-                <p-header>Steps</p-header>
-                <div class="ui-inputgroup" *ngFor="let step of recipe.steps;let index = index;trackBy: trackByIndex;">
-                  <span class="ui-inputgroup-addon">#{{index + 1}}</span>
-                  <input placeholder="Step Description" [nrFocus]="stepFocusIndex == index" class="form-control" type="text"
-                    id="steps{{index}}" name="steps{{index}}" (keyup.enter)="addStep(index)" [(ngModel)]="step.stepDescription"
-                    pInputText>
-                  <button pButton type="button" icon="pi pi-times" [disabled]="index == 0" (click)="removeStep(step)"
-                    class="ui-button-danger">
-                  </button>
-                  <button pButton type="button" icon="pi pi-arrow-down" (click)="incrementStep(step)"> </button>
-                  <button pButton type="button" icon="pi pi-arrow-up" (click)="decrementStep(step)"> </button>
-                </div>
-              </p-fieldset>
-            </div>
+          <div class="row">
+            <p-fieldset>
+              <p-header>Steps</p-header>
+              <div class="p-inputgroup" *ngFor="let step of recipe.steps;let index = index;trackBy: trackByIndex;">
+                <span class="p-inputgroup-addon">#{{index + 1}}</span>
+                <input placeholder="Step Description" [nrFocus]="stepFocusIndex == index" class="form-control"
+                  type="text" id="steps{{index}}" name="steps{{index}}" (keyup.enter)="addStep(index)"
+                  [(ngModel)]="step.stepDescription" pInputText>
+                <button pButton type="button" icon="pi pi-times" [disabled]="index == 0" (click)="removeStep(step)"
+                  class="p-button-danger">
+                </button>
+                <button pButton type="button" icon="pi pi-arrow-down" (click)="incrementStep(step)"> </button>
+                <button pButton type="button" icon="pi pi-arrow-up" (click)="decrementStep(step)"> </button>
+              </div>
+            </p-fieldset>
           </div>
           <p-footer>
-            <button pButton type="button" label="Save" (click)="saveRecipe()" [disabled]="!form.valid" icon="pi pi-check"
-              class="ui-button-success"></button>
-            <button pButton type="button" label="Reset" (click)="resetRecipe(form)" icon="pi pi-refresh" class="ui-button-warning"></button>
-            <button pButton type="button" label="Delete" (click)="deleteRecipe()" icon="pi pi-trash" class="ui-button-danger"></button>
+            <button pButton type="button" label="Save" (click)="saveRecipe()" [disabled]="!form.valid"
+              icon="pi pi-check" class="p-button-success"></button>
+            <button pButton type="button" label="Reset" (click)="resetRecipe(form)" icon="pi pi-refresh"
+              class="p-button-warning"></button>
+            <button pButton type="button" label="Delete" (click)="deleteRecipe()" icon="pi pi-trash"
+              class="p-button-danger"></button>
           </p-footer>
         </p-panel>
       </form>

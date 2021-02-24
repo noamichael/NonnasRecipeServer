@@ -3,11 +3,75 @@ html, body, body nr-app .ui-widget {
     font-size: 16px;
 }
 
+label {
+    font-weight: bold;
+}
+
 body {
     margin: 0px;
+}
+
+.p-progressbar .p-progressbar-value {
+    background: #007ad9;
 }
 
 .nr-navbar {
     background: #333333;
     padding: 0.5em;
+}
+
+.page-actions {
+    position: absolute;
+    display: flex;
+    justify-content: flex-end;
+    top: 0.3em;
+    right: 0;
+}
+
+.page-actions > button {
+    margin-right: 1em;
+}
+
+.p-card .p-card-title {
+    color: darkcyan;
+}
+
+.p-dataview .p-dataview-header {
+    background: #333;
+}
+
+.recipe-card .p-card {
+    margin-bottom: 1em;
+}
+
+.recipe-card .p-card:hover {
+    cursor: pointer;
+    background: #eaeaea;
+}
+
+.keyboard-wrapper {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 50%;
+    bottom: 0;
+    display: none;
+    z-index: 100;
+    background-color: #fbddfb;
+}
+
+.keyboard-wrapper .simple-keyboard {
+    height: 100%;
+    width: 100%;
+    background-color: #fbddfb;
+}
+
+.keyboard-wrapper button.p-button.p-component.p-button-icon-only {
+    float: right;
+    min-width: 100px;
+    margin-bottom: 0.1em;
+}
+
+.keyboard-wrapper .simple-keyboard.hg-theme-default.hg-layout-default .hg-button{
+    height: 50px;
 }
