@@ -25,6 +25,7 @@
             "styles": [
               "node_modules/primeicons/primeicons.css",
               "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/simple-keyboard/build/css/index.css",
               "node_modules/primeng/resources/themes/mdc-light-deeppurple/theme.css",
               "src/styles.css"
             ],

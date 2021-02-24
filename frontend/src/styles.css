@@ -48,3 +48,30 @@ body {
     cursor: pointer;
     background: #eaeaea;
 }
+
+.keyboard-wrapper {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 50%;
+    bottom: 0;
+    display: none;
+    z-index: 100;
+    background-color: #fbddfb;
+}
+
+.keyboard-wrapper .simple-keyboard {
+    height: 100%;
+    width: 100%;
+    background-color: #fbddfb;
+}
+
+.keyboard-wrapper button.p-button.p-component.p-button-icon-only {
+    float: right;
+    min-width: 100px;
+    margin-bottom: 0.1em;
+}
+
+.keyboard-wrapper .simple-keyboard.hg-theme-default.hg-layout-default .hg-button{
+    height: 50px;
+}

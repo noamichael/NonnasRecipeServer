@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
+import { KeyboardService } from './shared/keyboard.service';
 
 @Component({
   selector: 'nr-app',
@@ -11,7 +12,8 @@ export class AppComponent implements OnInit {
   loading: boolean
 
   constructor(
-    private router: Router
+    private router: Router,
+    public keyboardService: KeyboardService
   ) { }
 
   ngOnInit() {
@@ -33,6 +35,15 @@ export class AppComponent implements OnInit {
         }
       }
     });
+    this.keyboardService.attach()
+  }
+
+  closeKeyboard() {
+    this.keyboardService.close();
+  }
+
+  onEnabledChange() {
+    location.reload()
   }
 
 }
