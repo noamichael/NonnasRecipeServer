@@ -1,18 +1,29 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
-import { NgModule, APP_INITIALIZER } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import { BrowserModule } from "@angular/platform-browser";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
+import { APP_INITIALIZER, NgModule } from "@angular/core";
+import { HttpClientModule } from "@angular/common/http";
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { FormsModule } from '@angular/forms';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { RecipeService } from './recipe.service';
-import { ButtonModule } from 'primeng/button';
+import { AppRoutingModule } from "./app-routing.module";
+import { AppComponent } from "./app.component";
+import { FormsModule } from "@angular/forms";
+import { ProgressBarModule } from "primeng/progressbar";
+import { RecipeService } from "./recipe.service";
+import { ButtonModule } from "primeng/button";
+import { UserService } from "./shared/user.service";
+import { OverlayPanelModule } from "primeng/overlaypanel";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
+
+const initialize = (recipeService: RecipeService, userService: UserService) => {
+  return () =>
+    Promise.all([
+      recipeService.bootstrap(),
+      userService.bootstrap(),
+    ]);
+};
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
   ],
   imports: [
     BrowserAnimationsModule,
@@ -21,18 +32,20 @@ import { ButtonModule } from 'primeng/button';
     AppRoutingModule,
     HttpClientModule,
     ProgressBarModule,
-    ButtonModule
+    ButtonModule,
+    OverlayPanelModule,
+    ConfirmDialogModule,
   ],
   providers: [
     RecipeService,
     {
       // Provider for APP_INITIALIZER
       provide: APP_INITIALIZER,
-      useFactory: (recipeService: RecipeService) => () => recipeService.bootstrap(),
-      deps: [RecipeService],
-      multi: true
-    }
+      useFactory: initialize,
+      deps: [RecipeService, UserService],
+      multi: true,
+    },
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

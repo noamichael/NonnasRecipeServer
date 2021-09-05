@@ -27,6 +27,7 @@ public class RecipeServer {
         Service privateService = ignite().port(PRIVATE_PORT);
 
         System.out.println(String.format("Starting server with ports {public: %s, private: %s}", PUBLIC_PORT, PRIVATE_PORT));
+        AuthEndpoint.setupEndpoints(publicService);
         RecipeEndpoint.setupEndpoints(publicService, privateService);
         doWaitForInput(publicService, privateService);
     }
