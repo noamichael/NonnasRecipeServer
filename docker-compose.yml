@@ -23,6 +23,7 @@ services:
       DATABASE_HOST: database
       MYSQL_USER: mysql_user
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
   database:
     build: ./database
     restart: unless-stopped

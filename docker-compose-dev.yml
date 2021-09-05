@@ -1,12 +1,12 @@
 version: '3'
 services:
-  frontend:
-    build: ./frontend
-    ports:
-    - "8080:8080"
-    environment:
-      PUBLIC_API: backend:6789
-      PRIVATE_API: backend:7890
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #   - "8080:8080"
+  #   environment:
+  #     PUBLIC_API: backend:6789
+  #     PRIVATE_API: backend:7890
   gateway:
     build: ./gateway
     ports:
@@ -22,6 +22,7 @@ services:
       DATABASE_HOST: database
       MYSQL_USER: mysql_user
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
   database:
     build: ./database
     environment:
