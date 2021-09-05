@@ -22,21 +22,23 @@ import org.piratesoft.recipe.server.util.StringUtil;
  */
 public class MySql {
 
+    private final static Logger LOGGER = Logger.getLogger(MySql.class.getName());
     private Connection con = null;
-    private final String USERNAME = "mysql_user";
-    private final String PASSWORD = "***REMOVED***";
-    //private static final String DRIVER = "com.mysql.jdbc.Driver";
     private final String URL = "jdbc:mysql://" + System.getenv("DATABASE_HOST") + ":3306/NonnasRecipes";
 
-    public MySql() throws SQLException {
-        con = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+    public MySql(SqlCreds creds) throws SQLException {
+        con = DriverManager.getConnection(
+            URL,
+            creds.getUsername(),
+            creds.getPassword()
+        );
     }
 
     public void destroy() {
         try {
             con.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, null, e);
         }
     }
 
@@ -44,7 +46,6 @@ public class MySql {
         RecipeResponse<List<Recipe>> response = new RecipeResponse<>();
         List<Object> params = new ArrayList<>();
         String where = "";
-        String join = "";
 
         if (queryParams.containsKey("recipeName")) {
             List<String> recipeNames = queryParams.get("recipeName");
@@ -71,18 +72,14 @@ public class MySql {
         }
 
         int offset = count * (page - 1);
-        List<Object> paramsWithOffset = new ArrayList(params);
+        List<Object> paramsWithOffset = new ArrayList<>(params);
         paramsWithOffset.addAll(Arrays.asList(count, offset));
-        List<Recipe> pagedResult = executeQuery(
-                String.format("SELECT R.* FROM Recipe R WHERE 1 = 1%s ORDER BY R.recipeName ASC LIMIT ? OFFSET ?", where),
-                paramsWithOffset,
-                this::resultSetToRecipe
-        );
+        List<Recipe> pagedResult = executeQuery(String
+                .format("SELECT R.* FROM Recipe R WHERE 1 = 1%s ORDER BY R.recipeName ASC LIMIT ? OFFSET ?", where),
+                paramsWithOffset, this::resultSetToRecipe);
         int totalRecordCount = executeQuery(
-                String.format("SELECT COUNT(R.ID) as totalRecordCount FROM Recipe R WHERE 1 = 1%s", where),
-                params,
-                rs -> rs.getInt("totalRecordCount")
-        ).get(0);
+                String.format("SELECT COUNT(R.ID) as totalRecordCount FROM Recipe R WHERE 1 = 1%s", where), params,
+                rs -> rs.getInt("totalRecordCount")).get(0);
 
         response.setCount(count);
         response.setData(pagedResult);
@@ -93,11 +90,8 @@ public class MySql {
     }
 
     public Optional<Recipe> getRecipe(int id) {
-        List<Recipe> recipeResult = executeQuery(
-                "SELECT * FROM Recipe WHERE id = ?",
-                Arrays.asList(id),
-                this::resultSetToRecipe
-        );
+        List<Recipe> recipeResult = executeQuery("SELECT * FROM Recipe WHERE id = ?", Arrays.asList(id),
+                this::resultSetToRecipe);
 
         if (recipeResult.isEmpty()) {
             return Optional.empty();
@@ -108,7 +102,7 @@ public class MySql {
         recipe.setIngredients(getIngredients(id));
         recipe.setSteps(getRecipeSteps(id));
 
-        //load steps and ingredients
+        // load steps and ingredients
         return Optional.of(recipe);
     }
 
@@ -118,19 +112,21 @@ public class MySql {
     }
 
     public int saveRecipe(Recipe recipe) {
-        Integer id = recipe.getId();
-        List<Object> insertAndUpdateArgs = new ArrayList<>();
-        insertAndUpdateArgs.addAll(Arrays.asList(
+        try {
+            con.setAutoCommit(false);
+            Integer id = recipe.getId();
+            List<Object> insertAndUpdateArgs = new ArrayList<>();
+            insertAndUpdateArgs.addAll(Arrays.asList(
                 recipe.getRecipeName(),
                 recipe.getRecipeType().toString().toUpperCase(),
                 recipe.getCookTime(),
                 recipe.getServingSize(),
                 recipe.getWeightWatchers(),
                 recipe.getPoints()
-        ));
-        if (id != null) {
+            ));
+            if (id != null) {
 
-            String update = "UPDATE Recipe SET "
+                String update = "UPDATE Recipe SET "
                     + "recipeName = ?, "
                     + "recipeType = ?, "
                     + "cookTime = ?, "
@@ -139,66 +135,78 @@ public class MySql {
                     + "points = ? "
                     + "WHERE ID = ?";
 
-            insertAndUpdateArgs.add(id);
+                insertAndUpdateArgs.add(id);
 
-            int updateRecipeResult = executeUpdate(update, insertAndUpdateArgs);
+                int updateRecipeResult = executeUpdate(update, insertAndUpdateArgs);
 
-            if (updateRecipeResult < 1) {
-                return -1;
+                if (updateRecipeResult < 1) {
+                    return -1;
+                }
+
+                deleteStepsAndIngredients(id);
+
+            } else {
+                String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize, weightWatchers, points) VALUES(?,?,?,?,?,?)";
+                id = executeInsert(insert, insertAndUpdateArgs);
+            }
+            final int recipeId = id;// need to use a final int for lambda
+
+            recipe.getIngredients().forEach(ingredient -> {
+                if (StringUtil.isNullOrEmpty(ingredient.getIngredientDescription())) {
+                    return;// this is equivlent to continue
+                }
+                String insertIngredient = "INSERT INTO Ingredient (recipeId, ingredientDescription) VALUES(?,?)";
+                executeInsert(insertIngredient, Arrays.asList(recipeId, ingredient.getIngredientDescription()));
+            });
+
+            List<RecipeStep> recipeSteps = recipe.getSteps();
+
+            for (int i = 0; i < recipeSteps.size(); i++) {
+                RecipeStep step = recipeSteps.get(i);
+                if (StringUtil.isNullOrEmpty(step.getStepDescription())) {
+                    continue;
+                }
+                String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES(?,?,?)";
+                executeInsert(insertStep, Arrays.asList(recipeId, i + 1, step.getStepDescription()));
             }
 
-            deleteStepsAndIngredients(id);
+            con.commit();
 
-        } else {
-            String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize, weightWatchers, points) VALUES(?,?,?,?,?,?)";
-            id = executeInsert(insert, insertAndUpdateArgs);
+            return recipeId;
+        } catch (SQLException e) {
+            try {
+                LOGGER.log(Level.SEVERE, null, e);
+                System.err.print("Transaction is being rolled back");
+                con.rollback();
+            } catch (SQLException rollbackException) {
+                LOGGER.log(Level.SEVERE, null, e);
+            }
+        } finally {
+            try {
+                con.setAutoCommit(true);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, null, e);
+            }
         }
-        final int recipeId = id;//need to use a final int for lambda
 
-        recipe.getIngredients().forEach(ingredient -> {
-            if (StringUtil.isNullOrEmpty(ingredient.getIngredientDescription())) {
-                return;//this is equivlent to continue
-            }
-            String insertIngredient = "INSERT INTO Ingredient (recipeId, ingredientDescription) VALUES(?,?)";
-            executeInsert(insertIngredient, Arrays.asList(recipeId, ingredient.getIngredientDescription()));
-        });
-
-        List<RecipeStep> recipeSteps = recipe.getSteps();
-
-        for (int i = 0; i < recipeSteps.size(); i++) {
-            RecipeStep step = recipeSteps.get(i);
-            if (StringUtil.isNullOrEmpty(step.getStepDescription())) {
-                continue;
-            }
-            String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES(?,?,?)";
-            executeInsert(insertStep, Arrays.asList(recipeId, i + 1, step.getStepDescription()));
-        }
-
-        return recipeId;
+        return -1;
     }
 
     List<Ingredient> getIngredients(int recipeId) {
-        return executeQuery(
-                "SELECT * FROM Ingredient WHERE recipeId = ?",
-                Arrays.asList(recipeId),
-                (rs) -> {
-                    Ingredient ingredient = new Ingredient();
-                    ingredient.setIngredientDescription(rs.getString("ingredientDescription"));
-                    return ingredient;
-                }
-        );
+        return executeQuery("SELECT * FROM Ingredient WHERE recipeId = ?", Arrays.asList(recipeId), (rs) -> {
+            Ingredient ingredient = new Ingredient();
+            ingredient.setIngredientDescription(rs.getString("ingredientDescription"));
+            return ingredient;
+        });
     }
 
     List<RecipeStep> getRecipeSteps(int recipeId) {
-        return executeQuery(
-                "SELECT * FROM RecipeStep WHERE recipeId = ? ORDER BY stepOrder ASC",
-                Arrays.asList(recipeId),
-                (rs) -> {
+        return executeQuery("SELECT * FROM RecipeStep WHERE recipeId = ? ORDER BY stepOrder ASC",
+                Arrays.asList(recipeId), (rs) -> {
                     RecipeStep recipeStep = new RecipeStep();
                     recipeStep.setStepDescription(rs.getString("stepDescription"));
                     return recipeStep;
-                }
-        );
+                });
     }
 
     Recipe resultSetToRecipe(ResultSet rs) throws SQLException {
@@ -240,7 +248,7 @@ public class MySql {
             return results;
 
         } catch (SQLException ex) {
-            Logger.getLogger(MySql.class.getName()).log(Level.SEVERE, null, ex);
+           LOGGER.log(Level.SEVERE, null, ex);
         }
         return null;
     }

@@ -20,12 +20,14 @@ services:
       - "7890:7890"
     environment:
       DATABASE_HOST: database
+      MYSQL_USER: mysql_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
   database:
     build: ./database
     environment:
-      MYSQL_ROOT_PASSWORD: ***REMOVED***
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: mysql_user
-      MYSQL_PASSWORD: ***REMOVED***
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: NonnasRecipes
     volumes:
     - mysql-data:/var/lib/mysql

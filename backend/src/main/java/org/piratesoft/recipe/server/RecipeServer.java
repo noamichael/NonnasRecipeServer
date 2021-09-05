@@ -23,17 +23,12 @@ public class RecipeServer {
     }
 
     public void startServer(String... args) {
-        //ServerConfig config = readConfig();
         Service publicService = ignite().port(PUBLIC_PORT);
         Service privateService = ignite().port(PRIVATE_PORT);
 
         System.out.println(String.format("Starting server with ports {public: %s, private: %s}", PUBLIC_PORT, PRIVATE_PORT));
         RecipeEndpoint.setupEndpoints(publicService, privateService);
         doWaitForInput(publicService, privateService);
-    }
-
-    private void doStop() {
-        this.waitForInput.interrupt();
     }
 
     private void stopServer(Service publicService,  Service privateService) {
@@ -67,15 +62,4 @@ public class RecipeServer {
         return s.equals("stop") || s.endsWith("quit") || s.equals("exit");
     }
 
-//    public ServerConfig readConfig() {
-//        try {
-//            FileReader reader = new FileReader("./lights.conf");
-//            JsonReader jsonReader = Json.createReader(reader);
-//            JsonObject jsonConfig = jsonReader.readObject();
-//            return new ServerConfig(jsonConfig);
-//        } catch (FileNotFoundException e) {
-//            System.out.println("Config file not found. " + e.getMessage());
-//            return new ServerConfig();
-//        }
-//    }
 }

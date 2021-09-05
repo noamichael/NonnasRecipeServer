@@ -2,17 +2,17 @@ package org.piratesoft.recipe.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.servlet.ServletOutputStream;
 import org.piratesoft.recipe.server.schema.Recipe;
 import org.piratesoft.recipe.server.schema.Recipe.RecipeType;
 import org.piratesoft.recipe.server.schema.RecipeResponse;
 import org.piratesoft.recipe.server.sql.MySql;
+import org.piratesoft.recipe.server.sql.SqlCreds;
+
 import spark.QueryParamsMap;
 import spark.Request;
 import spark.Response;
@@ -26,6 +26,8 @@ import spark.Service;
  */
 public class RecipeEndpoint {
 
+    public static final SqlCreds SQL_CREDS = SqlCreds.readCredsFromSecret();
+
     public static void setupEndpoints(Service publicService, Service privateService) {
 
         final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
@@ -36,7 +38,7 @@ public class RecipeEndpoint {
         publicService.before(RecipeEndpoint::before);
         privateService.before(RecipeEndpoint::before);
 
-        //PUBLIC methods
+        // PUBLIC methods
         final ResponseTransformer JSON = new JsonTransformer();
 
         publicService.get("/recipe-types", (req, res) -> {
@@ -46,7 +48,6 @@ public class RecipeEndpoint {
         publicService.get("/gateway", (req, res) -> {
             return "{\"active\": false}";
         }, JSON);
-
 
         publicService.get("/recipes", sqlRoute((req, res, sql) -> {
             int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
@@ -64,7 +65,7 @@ public class RecipeEndpoint {
             return new RecipeResponse<>(recipeOptional.get());
         }), JSON);
 
-        //Private method
+        // Private method
         privateService.post("/recipes", sqlRoute((req, res, sql) -> {
             Recipe recipe = gson.fromJson(req.body(), Recipe.class);
             int id = sql.saveRecipe(recipe);
@@ -112,7 +113,7 @@ public class RecipeEndpoint {
 
     static Route sqlRoute(SQLEndpoint endpoint) {
         return (req, res) -> {
-            MySql sql = new MySql();
+            MySql sql = new MySql(SQL_CREDS);
             try {
                 return endpoint.handle(req, res, sql);
             } finally {
