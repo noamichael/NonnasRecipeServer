@@ -21,13 +21,15 @@ services:
       - "6789:6789" #Only expose public port
     environment:
       DATABASE_HOST: database
+      MYSQL_USER: mysql_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
   database:
     build: ./database
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: .HTDoaahmou333.
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: mysql_user
-      MYSQL_PASSWORD: .HTDoaahmou333.
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: NonnasRecipes
     volumes:
     - mysql-data:/var/lib/mysql

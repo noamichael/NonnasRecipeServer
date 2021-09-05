@@ -6,13 +6,11 @@
 package org.piratesoft.recipe.server.schema;
 
 import javax.json.JsonObject;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author micha_000
  */
-@XmlRootElement
 public class RecipeRequest {
 
     private JsonObject payload;
