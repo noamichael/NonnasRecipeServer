@@ -1,5 +1,9 @@
 h2 {
-    margin-top: 0em;
+    margin: 0;
+}
+
+.author {
+    margin-bottom: .5em;
 }
 
 .recipe {

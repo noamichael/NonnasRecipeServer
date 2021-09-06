@@ -1,5 +1,6 @@
 package org.piratesoft.recipe.server;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -40,32 +41,41 @@ public class AuthEndpoint {
             RecipeUser user = VERIFIER.verify(request.token);
 
             if (user != null) {
+                MySql sql = MySqlInstance.get();
                 // Make an entry in the database for this user if we haven't
                 // seen them before
-                MySqlInstance.get().saveUser(user);
+                int userId = sql.saveUser(user);
+                if (userId < 0) {
+                    res.status(500);
+                    return "Error signing in.";
+                }
+                // Lookup user from database
+                user = sql.getUser(userId).get(0);
                 // String name, String value, int maxAge, boolean secured, boolean httpOnly
                 res.cookie("/", JWT_COOKIE, request.token, TWENTY_FOUR_HOURS, true, true);
-                return new VerifyResponse(true);
+                return new VerifyResponse(true, user);
             } else {
                 // Remove the cookie if it's invalid
                 res.cookie("/", JWT_COOKIE, null, 0, true, true);
             }
 
-            return new VerifyResponse(false);
+            return new VerifyResponse();
         }, JSON);
 
         service.post("/auth/sign-out", (req, res) -> {
             res.cookie("/", JWT_COOKIE, null, 0, true, true);
-            return new VerifyResponse(true);
+            return new VerifyResponse(true, null);
         }, JSON);
 
         service.get("/auth/identity", (req, res) -> {
-            Object user = req.attribute(REQ_USER);
-            if (user == null) {
-                res.status(404); 
+            Optional<RecipeUser> user = AuthEndpoint.lookupUser(req, MySqlInstance.get());
+
+            if (!user.isPresent()) {
+                res.status(404);
                 return "{\"error\": \"Not Found\"}";
             }
-            return user;
+
+            return user.get();
         }, JSON);
 
     }
@@ -95,7 +105,22 @@ public class AuthEndpoint {
             return reqUser;
         }
 
+        RecipeUser requestUser = reqUser.get();
+
         // Lookup the user by email in the database
-        return reqUser.map(u -> sql.getUser(u.email)).map(results -> results.size() > 0 ? results.get(0) : null);
+        List<RecipeUser> userFromDb = sql.getUser(requestUser.email);
+
+        if (userFromDb.size() < 1) {
+            return Optional.empty();
+        }
+
+
+        // Copy GCP sent values in database model
+        RecipeUser fromDb = userFromDb.get(0);
+        
+        fromDb.picture = requestUser.picture;
+
+        return Optional.of(fromDb);
+
     }
 }

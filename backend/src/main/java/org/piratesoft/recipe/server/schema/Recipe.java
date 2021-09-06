@@ -23,6 +23,8 @@ public class Recipe {
     private Boolean weightWatchers;
     private Integer points;
 
+    private String userFullName;
+
     /**
      * @return the id
      */
@@ -163,5 +165,13 @@ public class Recipe {
      */
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
     }
 }

@@ -27,12 +27,14 @@ export class RecipeEntryComponent implements OnInit {
   stepFocusIndex = -1;
 
   recipe: Recipe
+  ownsRecipe: boolean
 
   @ViewChild(NgForm, { static: true })
   form: NgForm
 
   constructor(
     private recipeService: RecipeService,
+    private userService: UserService,
     private confirmationService: ConfirmationService,
     private recipeTableService: RecipeTableService,
     private route: ActivatedRoute,
@@ -55,6 +57,12 @@ export class RecipeEntryComponent implements OnInit {
       } else {
         this.recipeType = null;
       }
+
+      this.ownsRecipe = this.recipeService.ownsRecipe(
+        this.userService.$auth.value,
+        this.recipe,
+      );
+
     });
   }
 
@@ -67,6 +75,11 @@ export class RecipeEntryComponent implements OnInit {
   }
 
   saveRecipe() {
+    
+    if (!this.ownsRecipe) {
+      return;
+    }
+
     const recipeForm: Recipe = {
       id: this.recipe.id,
       recipeName: this.recipe.recipeName,
