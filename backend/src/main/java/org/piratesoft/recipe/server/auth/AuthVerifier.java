@@ -13,7 +13,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 
-import org.piratesoft.recipe.server.schema.User;
+import org.piratesoft.recipe.server.schema.RecipeUser;
+
 
 public class AuthVerifier {
 
@@ -25,7 +26,7 @@ public class AuthVerifier {
     final GoogleIdTokenVerifier _verifier = new GoogleIdTokenVerifier.Builder(HTTP_TRANSPORT, GSON)
             .setAudience(Collections.singletonList(CLIENT_ID)).build();
 
-    public User verify(String token) {
+    public RecipeUser verify(String token) {
         try {
             GoogleIdToken idToken = _verifier.verify(token);
 
@@ -34,10 +35,13 @@ public class AuthVerifier {
             }
             
             GoogleIdToken.Payload jwtPayload = idToken.getPayload();
-            User user = new User();
+            
+            RecipeUser user = new RecipeUser();
+
             user.email = jwtPayload.getEmail();
-            user.id = jwtPayload.getJwtId();
+            //user.jwtId = jwtPayload.getJwtId();
             user.name = (String) jwtPayload.get("name");
+            user.picture = (String) jwtPayload.get("picture");
             
             return user;
         } catch (GeneralSecurityException | IOException e) {
@@ -45,5 +49,4 @@ public class AuthVerifier {
             return null;
         }
     }
-
 }

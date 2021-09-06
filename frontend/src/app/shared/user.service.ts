@@ -13,6 +13,9 @@ const client_id =
 })
 export class UserService {
   private user: User = anonymous;
+
+  static client_id = client_id;
+
   $auth = new BehaviorSubject<User>(anonymous);
 
   constructor(
@@ -42,7 +45,7 @@ export class UserService {
   }
 
   signOut() {
-    return this.http.post("/public-api/auth/sign-out", "").toPromise().then(
+    return this.http.post("/api/auth/sign-out", "").toPromise().then(
       () => {
         google.accounts.id.disableAutoSelect();
         this.updateUser(anonymous);
@@ -51,12 +54,12 @@ export class UserService {
   }
 
   private verify(token: string) {
-    return this.http.post("/public-api/auth/verify", { token })
+    return this.http.post("/api/auth/verify", { token })
       .toPromise();
   }
 
   private getCurrentUser(): Promise<User> {
-    return this.http.get<User>("/public-api/auth/identity")
+    return this.http.get<User>("/api/auth/identity")
       .toPromise();
   }
 
@@ -66,6 +69,24 @@ export class UserService {
         // TODO: do I need to know this?
       }
     });
+  }
+
+  renderLoginButton() {
+    google.accounts.id.renderButton(document.getElementById("googleLogin"), {
+      theme: "outline",
+      size: "large",
+    });
+  }
+
+  destroyLoginButton() {
+    const button = document.getElementById("googleLogin");
+    if (button) {
+      document.getElementById("googleLogin").childNodes.forEach(n => n.remove());
+    }
+  }
+
+  isSignedIn() {
+    return this.user && this.user.name != 'anonymous';
   }
 
   private updateUser(user: User) {

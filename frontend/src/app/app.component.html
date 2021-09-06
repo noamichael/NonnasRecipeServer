@@ -1,13 +1,13 @@
 <div class="header">
-  <h1>
-    <a href="/">
-      <span class="pi pi-star"></span>
-      <span class="text">{{appName}} Kitchen</span>
-      <span class="pi pi-star"></span>
-    </a>
-  </h1>
-  <div class="user-profile">
-    <button pButton class="p-button-info" (click)="op.toggle($event)" icon="pi pi-user"></button>
+  <div class="hamburger-and-header">
+    <button pButton icon="pi pi-list" (click)="toggleSidebar()"></button>
+    <h1>
+      <a href="/">
+        <span class="pi pi-star"></span>
+        <span class="text">{{appName}} Kitchen</span>
+        <span class="pi pi-star"></span>
+      </a>
+    </h1>
   </div>
   <p-progressBar [hidden]="!loading" [style]="{height: '0.25em'}" mode="indeterminate"></p-progressBar>
   <p-progressBar [hidden]="loading" [showValue]="false" [style]="{height: '0.25em'}" value="100"></p-progressBar>
@@ -23,13 +23,16 @@
   On Screen Keyboard
 </label>
 
-<p-overlayPanel #op>
-  <ng-template pTemplate>
-    <button *ngIf="loggedIn" pButton class="p-button-danger" (click)="signOut()" label="Logout" icon="pi pi-sign-out">
-    </button>
-    <button *ngIf="!loggedIn" pButton class="p-button-success" (click)="signIn()" label="Login" icon="pi pi-sign-in">
-    </button>
-  </ng-template>
-</p-overlayPanel>
+<p-sidebar [(visible)]="sidebarOpen" (onShow)="onSidebarShow()" (onHide)="onSidebarHide()">
+  <div class="profile-info">
+    <img alt="User Profile Picture" [src]="user.picture" *ngIf="user.picture">
+    <span class="username">{{user.name}}</span>
+  </div>
+  <div class="seperator"></div>
+  <button *ngIf="loggedIn" pButton class="p-button-danger" (click)="signOut()" label="Logout" icon="pi pi-sign-out">
+  </button>
+  <div id="googleLogin"></div>
+</p-sidebar>
+
 
 <p-confirmDialog key="appConfirm" header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>

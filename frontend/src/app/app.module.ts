@@ -12,6 +12,7 @@ import { ButtonModule } from "primeng/button";
 import { UserService } from "./shared/user.service";
 import { OverlayPanelModule } from "primeng/overlaypanel";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { SidebarModule } from 'primeng/sidebar';
 
 const initialize = (recipeService: RecipeService, userService: UserService) => {
   return () =>
@@ -35,6 +36,7 @@ const initialize = (recipeService: RecipeService, userService: UserService) => {
     ButtonModule,
     OverlayPanelModule,
     ConfirmDialogModule,
+    SidebarModule,
   ],
   providers: [
     RecipeService,

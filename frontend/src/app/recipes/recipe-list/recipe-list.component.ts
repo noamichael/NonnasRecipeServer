@@ -1,57 +1,65 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { RecipeResponse, TypeOption, RecipeService } from '../../recipe.service';
-import { Recipe } from '../../schema/recipe';
-import { RecipeTableService } from '../recipe-table.service';
-import { Utils } from 'src/app/utils';
-import { LazyLoadEvent } from 'primeng/api';
-import { DataView } from 'primeng/dataview';
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import {
+  RecipeResponse,
+  RecipeService,
+  TypeOption,
+} from "../../recipe.service";
+import { Recipe } from "../../schema/recipe";
+import { RecipeTableService } from "../recipe-table.service";
+import { Utils } from "src/app/utils";
+import { LazyLoadEvent } from "primeng/api";
+import { DataView } from "primeng/dataview";
 
 interface Filters {
-  recipeName?: string,
-  recipeType?: TypeOption | string,
-  weightWatchers?: boolean
-  page?: number
+  recipeName?: string;
+  recipeType?: TypeOption | string;
+  weightWatchers?: boolean;
+  page?: number;
+  mine?: boolean;
 }
+
 @Component({
-  selector: 'nr-recipe-list',
-  templateUrl: './recipe-list.component.html',
-  styleUrls: ['./recipe-list.component.css']
+  selector: "nr-recipe-list",
+  templateUrl: "./recipe-list.component.html",
+  styleUrls: ["./recipe-list.component.css"],
 })
 export class RecipeListComponent implements OnInit, OnDestroy {
-  recipes: RecipeResponse<Recipe[]>
+  recipes: RecipeResponse<Recipe[]>;
 
-  filters: Filters = {}
-  recipeTypes: TypeOption[]
+  filters: Filters = {};
+  recipeTypes: TypeOption[];
 
-  private doFilter: Function
-  private firstLoad = true
+  private doFilter: Function;
+  private firstLoad = true;
 
   constructor(
     private recipeTableService: RecipeTableService,
-    private recipeService: RecipeService,
     private route: ActivatedRoute,
-    private router: Router
-  ) { }
+    private router: Router,
+  ) {}
 
   ngOnInit() {
-    this.route.data.subscribe(data => {
+    this.route.data.subscribe((data) => {
       this.recipes = data.recipes;
-    })
+    });
     this.recipeTypes = this.recipeTableService.recipeTypes;
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.filters.recipeName = params.recipeName;
-      switch ('' + params.weightWatchers) {
-        case 'true':
+      switch ("" + params.weightWatchers) {
+        case "true":
           this.filters.weightWatchers = true;
           break;
-        case 'false':
+        case "false":
           this.filters.weightWatchers = false;
           break;
         default:
           this.filters.weightWatchers = null;
       }
-      this.filters.recipeType = this.recipeTypes.filter(rt => rt.value == params.recipeType)[0];
+      this.filters.recipeType = this.recipeTypes.filter((rt) =>
+        rt.value == params.recipeType
+      )[0];
+      this.filters.mine = params.mine;
     });
     this.doFilter = Utils.debounce((field: string, dt: DataView) => {
       this.onLazyLoad({ first: 0, rows: this.recipes.count });
@@ -59,14 +67,13 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-
   }
 
   openRecipe(recipe?: Recipe) {
-    const id = recipe ? recipe.id : 'new';
-    const route = ['./', id];
+    const id = recipe ? recipe.id : "new";
+    const route = ["./", id];
     if (!recipe) {
-      route.push('edit');
+      route.push("edit");
     }
     this.router.navigate(route, { relativeTo: this.route });
   }
@@ -93,24 +100,22 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       return;
     }
     const filters: Filters = {
-      page: ($event.first / $event.rows) + 1
+      page: ($event.first / $event.rows) + 1,
     };
     if (this.filters.recipeName) {
       filters.recipeName = this.filters.recipeName;
     }
-    if (this.filters.recipeType && this.filters.recipeType['value']) {
-      filters.recipeType = this.filters.recipeType['value'];
+    if (this.filters.recipeType && this.filters.recipeType["value"]) {
+      filters.recipeType = this.filters.recipeType["value"];
     }
     if (this.filters.weightWatchers != null) {
       filters.weightWatchers = this.filters.weightWatchers;
     }
 
-    this.router.navigate(['./', filters], { relativeTo: this.route });
+    if (this.filters.mine) {
+      filters.mine = this.filters.mine;
+    }
+
+    this.router.navigate(["./", filters], { relativeTo: this.route });
   }
-
-  get gateway() {
-    return this.recipeService.gateway;
-  }
-
-
 }

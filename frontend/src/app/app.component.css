@@ -16,11 +16,35 @@ h1 {
     text-decoration: none;
 }
 
+.hamburger-and-header {
+    display: flex;
+}
+
 .user-profile {
-    position: absolute;
-    right: 0.4em;
-    z-index: 12;
-    top: .3em;
+   display: flex;
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    background: #333232;
+    border-radius: 5px;
+    padding: 1em;
+    color: white;
+}
+
+.profile-info img {
+    border-radius: 50%;
+    height: 64px;
+    margin-right: 1em;
+}
+
+.seperator {
+    height: 1px;
+    width: 100%;
+    background-color: gray;
+    margin: 1em 0em;
 }
 
 /* latin */
