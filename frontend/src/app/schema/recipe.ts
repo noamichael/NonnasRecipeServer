@@ -11,4 +11,6 @@ export interface Recipe {
     weightWatchers?: boolean
     steps: RecipeStep[]
     ingredients: Ingredient[]
+    userId?: number
+    userFulleName?: string
 }

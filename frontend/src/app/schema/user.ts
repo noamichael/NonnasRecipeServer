@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  id: number;
   name: string;
   picture: string;
   email: string;
@@ -9,7 +9,7 @@ export interface User {
 export const anonymous: User = Object.freeze({
   credential: null,
   email: null,
-  id: "anonymous",
+  id: 0,
   picture: null,
   name: "anonymous",
 });

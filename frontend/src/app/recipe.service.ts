@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http'
 import { Recipe } from './schema/recipe';
+import { User } from './schema/user';
 
 export interface RecipeResponse<T> {
   data: T
@@ -27,7 +28,6 @@ export class RecipeService {
   bootstrap() {
     return Promise.resolve("ok");
   }
-
 
   getRecipesUrl() {
     return `${this.basePublicUrl}/recipes`
@@ -58,6 +58,10 @@ export class RecipeService {
 
   deleteRecipe(recipe: Recipe) {
     return this.http.delete(this.getRecipeUrl(recipe.id));
+  }
+
+  ownsRecipe(user: User, recipe: Recipe) {
+    return !recipe.id || (recipe.userId === user.id);
   }
 
 }

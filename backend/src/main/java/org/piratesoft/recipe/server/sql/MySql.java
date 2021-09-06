@@ -39,7 +39,8 @@ public class MySql {
         }
     }
 
-    public RecipeResponse<List<Recipe>> getRecipes(int page, int count, RecipeUser user, Map<String, List<String>> queryParams) {
+    public RecipeResponse<List<Recipe>> getRecipes(int page, int count, RecipeUser user,
+            Map<String, List<String>> queryParams) {
         RecipeResponse<List<Recipe>> response = new RecipeResponse<>();
         List<Object> params = new ArrayList<>();
         String where = "";
@@ -76,8 +77,9 @@ public class MySql {
         int offset = count * (page - 1);
         List<Object> paramsWithOffset = new ArrayList<>(params);
         paramsWithOffset.addAll(Arrays.asList(count, offset));
-        List<Recipe> pagedResult = executeQuery(String
-                .format("SELECT R.* FROM Recipe R WHERE 1 = 1%s ORDER BY R.recipeName ASC LIMIT ? OFFSET ?", where),
+        String select = this.baseRecipeSelect();
+        List<Recipe> pagedResult = executeQuery(
+                String.format(select + " WHERE 1 = 1%s ORDER BY R.recipeName ASC LIMIT ? OFFSET ?", where),
                 paramsWithOffset, this::resultSetToRecipe);
         int totalRecordCount = executeQuery(
                 String.format("SELECT COUNT(R.ID) as totalRecordCount FROM Recipe R WHERE 1 = 1%s", where), params,
@@ -91,8 +93,12 @@ public class MySql {
         return response;
     }
 
+    private String baseRecipeSelect() {
+        return "SELECT R.*, U.fullName FROM Recipe R INNER JOIN RecipeUser U ON U.id = R.userId";
+    }
+
     public Optional<Recipe> getRecipe(int id) {
-        List<Recipe> recipeResult = executeQuery("SELECT * FROM Recipe WHERE id = ?", Arrays.asList(id),
+        List<Recipe> recipeResult = executeQuery(this.baseRecipeSelect() + " WHERE R.id = ?", Arrays.asList(id),
                 this::resultSetToRecipe);
 
         if (recipeResult.isEmpty()) {
@@ -184,25 +190,13 @@ public class MySql {
         }, -1);
     }
 
-    List<RecipeUser> getUser(int userId) {
-        return executeQuery("SELECT * FROM RecipeUser WHERE id = ?", Arrays.asList(userId), (rs) -> {
-            RecipeUser user = new RecipeUser();
-            user.email = rs.getString("email");
-            user.id = rs.getInt("id");
-            user.name = rs.getString("fullName");
-            return user;
-        });
+    public List<RecipeUser> getUser(int userId) {
+        return executeQuery("SELECT * FROM RecipeUser WHERE id = ?", Arrays.asList(userId), this::resultSetToUser);
     }
 
     public List<RecipeUser> getUser(String email) {
         return executeQuery("SELECT * FROM RecipeUser WHERE email = ?", Arrays.asList(email.toLowerCase().trim()),
-                (rs) -> {
-                    RecipeUser user = new RecipeUser();
-                    user.email = rs.getString("email");
-                    user.id = rs.getInt("id");
-                    user.name = rs.getString("fullName");
-                    return user;
-                });
+                this::resultSetToUser);
     }
 
     List<Ingredient> getIngredients(int recipeId) {
@@ -234,7 +228,18 @@ public class MySql {
         recipe.setPoints(rs.getInt("points"));
         recipe.setUserId(rs.getInt("userId"));
 
+        // Join columns
+        recipe.setUserFullName(rs.getString("fullName"));
+
         return recipe;
+    }
+
+    RecipeUser resultSetToUser(ResultSet rs) throws SQLException {
+        RecipeUser user = new RecipeUser();
+        user.email = rs.getString("email");
+        user.id = rs.getInt("id");
+        user.name = rs.getString("fullName");
+        return user;
     }
 
     void deleteStepsAndIngredients(int recipeId) {
