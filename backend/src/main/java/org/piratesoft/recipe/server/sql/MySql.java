@@ -14,6 +14,7 @@ import org.piratesoft.recipe.server.schema.Ingredient;
 import org.piratesoft.recipe.server.schema.Recipe;
 import org.piratesoft.recipe.server.schema.RecipeResponse;
 import org.piratesoft.recipe.server.schema.RecipeStep;
+import org.piratesoft.recipe.server.schema.RecipeUser;
 import org.piratesoft.recipe.server.util.StringUtil;
 
 /**
@@ -27,11 +28,7 @@ public class MySql {
     private final String URL = "jdbc:mysql://" + System.getenv("DATABASE_HOST") + ":3306/NonnasRecipes";
 
     public MySql(SqlCreds creds) throws SQLException {
-        con = DriverManager.getConnection(
-            URL,
-            creds.getUsername(),
-            creds.getPassword()
-        );
+        con = DriverManager.getConnection(URL, creds.getUsername(), creds.getPassword());
     }
 
     public void destroy() {
@@ -42,7 +39,7 @@ public class MySql {
         }
     }
 
-    public RecipeResponse<List<Recipe>> getRecipes(int page, int count, Map<String, List<String>> queryParams) {
+    public RecipeResponse<List<Recipe>> getRecipes(int page, int count, RecipeUser user, Map<String, List<String>> queryParams) {
         RecipeResponse<List<Recipe>> response = new RecipeResponse<>();
         List<Object> params = new ArrayList<>();
         String where = "";
@@ -69,6 +66,11 @@ public class MySql {
                 where = where.concat(" AND R.weightWatchers = ?");
                 params.add(Boolean.valueOf(weightWatchers.trim()));
             }
+        }
+
+        if (queryParams.containsKey("mine") && user != null) {
+            where = where.concat(" AND R.userId = ?");
+            params.add(user.id);
         }
 
         int offset = count * (page - 1);
@@ -107,33 +109,23 @@ public class MySql {
     }
 
     public int deleteRecipe(int id) {
-        deleteStepsAndIngredients(id);
-        return executeUpdate("DELETE FROM Recipe WHERE ID = ?", Arrays.asList(id));
+        return runInTrx(() -> {
+            deleteStepsAndIngredients(id);
+            return executeUpdate("DELETE FROM Recipe WHERE ID = ?", Arrays.asList(id));
+        }, -1);
     }
 
     public int saveRecipe(Recipe recipe) {
-        try {
-            con.setAutoCommit(false);
+        return runInTrx(() -> {
             Integer id = recipe.getId();
             List<Object> insertAndUpdateArgs = new ArrayList<>();
-            insertAndUpdateArgs.addAll(Arrays.asList(
-                recipe.getRecipeName(),
-                recipe.getRecipeType().toString().toUpperCase(),
-                recipe.getCookTime(),
-                recipe.getServingSize(),
-                recipe.getWeightWatchers(),
-                recipe.getPoints()
-            ));
+            insertAndUpdateArgs.addAll(Arrays.asList(recipe.getRecipeName(),
+                    recipe.getRecipeType().toString().toUpperCase(), recipe.getCookTime(), recipe.getServingSize(),
+                    recipe.getWeightWatchers(), recipe.getPoints()));
             if (id != null) {
 
-                String update = "UPDATE Recipe SET "
-                    + "recipeName = ?, "
-                    + "recipeType = ?, "
-                    + "cookTime = ?, "
-                    + "servingSize = ?, "
-                    + "weightWatchers = ?, "
-                    + "points = ? "
-                    + "WHERE ID = ?";
+                String update = "UPDATE Recipe SET " + "recipeName = ?, " + "recipeType = ?, " + "cookTime = ?, "
+                        + "servingSize = ?, " + "weightWatchers = ?, " + "points = ? " + "WHERE ID = ?";
 
                 insertAndUpdateArgs.add(id);
 
@@ -146,7 +138,10 @@ public class MySql {
                 deleteStepsAndIngredients(id);
 
             } else {
-                String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize, weightWatchers, points) VALUES(?,?,?,?,?,?)";
+                // Associate this recipe with a user
+                insertAndUpdateArgs.add(recipe.getUserId());
+                System.out.println("Saving recipe w/ user " + recipe.getUserId());
+                String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize, weightWatchers, points, userId) VALUES(?,?,?,?,?,?,?)";
                 id = executeInsert(insert, insertAndUpdateArgs);
             }
             final int recipeId = id;// need to use a final int for lambda
@@ -170,26 +165,44 @@ public class MySql {
                 executeInsert(insertStep, Arrays.asList(recipeId, i + 1, step.getStepDescription()));
             }
 
-            con.commit();
-
             return recipeId;
-        } catch (SQLException e) {
-            try {
-                LOGGER.log(Level.SEVERE, null, e);
-                System.err.print("Transaction is being rolled back");
-                con.rollback();
-            } catch (SQLException rollbackException) {
-                LOGGER.log(Level.SEVERE, null, e);
-            }
-        } finally {
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, null, e);
-            }
+        }, -1);
+    }
+
+    public int saveUser(RecipeUser user) {
+
+        List<RecipeUser> userByEmail = getUser(user.email);
+
+        if (userByEmail.size() > 0) {
+            return userByEmail.get(0).id;
         }
 
-        return -1;
+        return runInTrx(() -> {
+            List<Object> insertAndUpdateArgs = new ArrayList<>();
+            insertAndUpdateArgs.addAll(Arrays.asList(user.email.trim().toLowerCase(), user.name));
+            return executeInsert("INSERT INTO RecipeUser (email, fullName) VALUES(?,?)", insertAndUpdateArgs);
+        }, -1);
+    }
+
+    List<RecipeUser> getUser(int userId) {
+        return executeQuery("SELECT * FROM RecipeUser WHERE id = ?", Arrays.asList(userId), (rs) -> {
+            RecipeUser user = new RecipeUser();
+            user.email = rs.getString("email");
+            user.id = rs.getInt("id");
+            user.name = rs.getString("fullName");
+            return user;
+        });
+    }
+
+    public List<RecipeUser> getUser(String email) {
+        return executeQuery("SELECT * FROM RecipeUser WHERE email = ?", Arrays.asList(email.toLowerCase().trim()),
+                (rs) -> {
+                    RecipeUser user = new RecipeUser();
+                    user.email = rs.getString("email");
+                    user.id = rs.getInt("id");
+                    user.name = rs.getString("fullName");
+                    return user;
+                });
     }
 
     List<Ingredient> getIngredients(int recipeId) {
@@ -219,6 +232,7 @@ public class MySql {
         recipe.setServingSize(rs.getString("servingSize"));
         recipe.setWeightWatchers(rs.getBoolean("weightWatchers"));
         recipe.setPoints(rs.getInt("points"));
+        recipe.setUserId(rs.getInt("userId"));
 
         return recipe;
     }
@@ -248,7 +262,7 @@ public class MySql {
             return results;
 
         } catch (SQLException ex) {
-           LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -301,8 +315,38 @@ public class MySql {
         }
     }
 
+    private <T> T runInTrx(SQLAction<T> action, T defaultValue) {
+        try {
+            con.setAutoCommit(false);
+            T result = action.run();
+            con.commit();
+            return result;
+        } catch (SQLException e) {
+            try {
+                LOGGER.log(Level.SEVERE, null, e);
+                System.err.print("Transaction is being rolled back");
+                con.rollback();
+            } catch (SQLException rollbackException) {
+                LOGGER.log(Level.SEVERE, null, e);
+            }
+        } finally {
+            try {
+                con.setAutoCommit(true);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, null, e);
+            }
+        }
+
+        return defaultValue;
+    }
+
     interface SQLFunction<Arg, Return> {
 
         Return apply(Arg arg) throws SQLException;
+    }
+
+    interface SQLAction<Return> {
+
+        Return run() throws SQLException;
     }
 }

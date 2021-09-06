@@ -3,15 +3,13 @@ const path = require('path');
 const proxy = require('express-http-proxy');
 
 const app = express();
-const publicAPI = process.env.PUBLIC_API || 'localhost:6789';
-const privateAPI = process.env.PRIVATE_API || 'localhost:7890';
+const api = process.env.PUBLIC_API || 'backend:6789';
 
 // Point static path to dist
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Proxy our api routes
-app.use('/public-api', doProxy(publicAPI, '/public-api'));
-app.use('/private-api', doProxy(privateAPI, '/private-api'));
+app.use('/api', doProxy(api, '/api'));
 
 // Catch all other routes and return the index file
 app.get('*', (req, res) => {

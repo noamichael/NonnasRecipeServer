@@ -19,6 +19,9 @@
         </p-dropdown>
       </div>
       <div>
+        <p-checkbox name="mine" value="mine" label="Mine" [binary]="true" [(ngModel)]="filters.mine"  (ngModelChange)="onFilterChange('mine', dv)"></p-checkbox>
+      </div>
+      <div>
         <p-triStateCheckbox [(ngModel)]="filters.weightWatchers" label="WW"
           (ngModelChange)="onFilterChange('weightWatchers', dv)"></p-triStateCheckbox>
       </div>

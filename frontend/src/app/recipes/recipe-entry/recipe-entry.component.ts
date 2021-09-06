@@ -10,6 +10,7 @@ import { Utils } from '../../utils';
 import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { RecipeTableService } from '../recipe-table.service';
+import { UserService } from 'src/app/shared/user.service';
 
 @Component({
   selector: 'nr-recipe-entry',
@@ -180,10 +181,6 @@ export class RecipeEntryComponent implements OnInit {
     });
   }
 
-  get gateway() {
-    return this.recipeService.gateway;
-  }
-
 }
 
 @Injectable()
@@ -225,14 +222,14 @@ export class CanDeactivateEntry implements CanDeactivate<RecipeEntryComponent> {
 export class CanActivateEntry implements CanActivate {
 
   constructor(
-    private recipeService: RecipeService,
+    private userService: UserService,
     private router: Router
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot) {
-    if (this.recipeService.gateway) {
+    if (!this.userService.isSignedIn()) {
       this.router.navigate(['recipes', route.params.id]);
     }
-    return !this.recipeService.gateway;
+    return true;
   }
 }

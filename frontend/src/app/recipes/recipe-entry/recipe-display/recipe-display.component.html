@@ -1,6 +1,6 @@
 <div class="page-actions">
     <button pButton type="button" label="Back" icon="pi pi-arrow-left" (click)="back()"></button>
-    <button *ngIf="!gateway" pButton type="button" label="Edit" icon="pi pi-pencil" class="p-button-info edit" (click)="edit()"></button>
+    <button *ngIf="loggedIn" pButton type="button" label="Edit" icon="pi pi-pencil" class="p-button-info edit" (click)="edit()"></button>
   </div>
 <p-card>
   <div class="recipe">

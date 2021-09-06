@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import org.piratesoft.recipe.server.schema.Recipe;
 import org.piratesoft.recipe.server.schema.Recipe.RecipeType;
 import org.piratesoft.recipe.server.schema.RecipeResponse;
+import org.piratesoft.recipe.server.schema.RecipeUser;
 import org.piratesoft.recipe.server.sql.MySql;
-import org.piratesoft.recipe.server.sql.SqlCreds;
+import org.piratesoft.recipe.server.sql.MySqlInstance;
 
 import spark.QueryParamsMap;
 import spark.Request;
@@ -26,36 +28,29 @@ import spark.Service;
  */
 public class RecipeEndpoint {
 
-    public static final SqlCreds SQL_CREDS = SqlCreds.readCredsFromSecret();
-
-    public static void setupEndpoints(Service publicService, Service privateService) {
+    public static void setupEndpoints(Service service) {
 
         final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
-        publicService.options("/*", RecipeEndpoint::options);
-        privateService.options("/*", RecipeEndpoint::options);
+        service.options("/*", RecipeEndpoint::options);
 
-        publicService.before(RecipeEndpoint::before);
-        privateService.before(RecipeEndpoint::before);
+        service.before(RecipeEndpoint::before);
 
         // PUBLIC methods
         final ResponseTransformer JSON = new JsonTransformer();
 
-        publicService.get("/recipe-types", (req, res) -> {
+        service.get("/recipe-types", (req, res) -> {
             return new RecipeResponse<>(Arrays.asList(RecipeType.values()));
         }, JSON);
 
-        publicService.get("/gateway", (req, res) -> {
-            return "{\"active\": false}";
-        }, JSON);
-
-        publicService.get("/recipes", sqlRoute((req, res, sql) -> {
+        service.get("/recipes", sqlRoute((req, res, sql) -> {
+            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(req, sql);
             int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
             int count = Integer.valueOf(req.queryParamOrDefault("count", "1000"));
-            return sql.getRecipes(page, count, paramsToMap(req.queryMap()));
+            return sql.getRecipes(page, count, reqUser.orElse(null), paramsToMap(req.queryMap()));
         }), JSON);
 
-        publicService.get("/recipes/:id", sqlRoute((req, res, sql) -> {
+        service.get("/recipes/:id", sqlRoute((req, res, sql) -> {
             int recipeId = Integer.valueOf(req.params(":id"));
             Optional<Recipe> recipeOptional = sql.getRecipe(recipeId);
             if (!recipeOptional.isPresent()) {
@@ -66,9 +61,36 @@ public class RecipeEndpoint {
         }), JSON);
 
         // Private method
-        privateService.post("/recipes", sqlRoute((req, res, sql) -> {
+        service.post("/recipes", sqlRoute((req, res, sql) -> {
+
+            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(req, sql);
+
+            if (!reqUser.isPresent()) {
+                res.status(401);
+                return unauthorized("You need to be signed in to save recipes");
+            }
+
+            RecipeUser user = reqUser.get();
+
             Recipe recipe = gson.fromJson(req.body(), Recipe.class);
-            int id = sql.saveRecipe(recipe);
+
+            Integer id = recipe.getId();
+
+            if (id != null) {
+                Optional<Recipe> oldRecipe = sql.getRecipe(id);
+
+                if (oldRecipe.isPresent() && oldRecipe.get().getUserId() != user.id) {
+                    res.status(401);
+                    return unauthorized("You can only save recipes that belong to you.");
+                }
+            }
+
+            System.out.println("Setting recipe user to " + user.id);
+
+            // Mark this recipe belongs to the current user
+            recipe.setUserId(user.id);
+
+            id = sql.saveRecipe(recipe);
             if (id == -1) {
                 res.status(500);
                 return "Could not save recipe. Unknown SQL error";
@@ -78,8 +100,24 @@ public class RecipeEndpoint {
             return new RecipeResponse<>(justId);
         }), JSON);
 
-        privateService.delete("/recipes/:id", sqlRoute((req, res, sql) -> {
+        service.delete("/recipes/:id", sqlRoute((req, res, sql) -> {
+            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(req, sql);
+
+            if (!reqUser.isPresent()) {
+                res.status(401);
+                return unauthorized("You need to be signed in to save recipes");
+            }
+
+            RecipeUser user = reqUser.get();
             int recipeId = Integer.valueOf(req.params(":id"));
+
+            Optional<Recipe> oldRecipe = sql.getRecipe(recipeId);
+
+            if (oldRecipe.isPresent() && oldRecipe.get().getUserId() != user.id) {
+                res.status(401);
+                return unauthorized("You can only delete recipes that belong to you.");
+            }
+
             int id = sql.deleteRecipe(recipeId);
             if (id == -1) {
                 res.status(500);
@@ -113,12 +151,8 @@ public class RecipeEndpoint {
 
     static Route sqlRoute(SQLEndpoint endpoint) {
         return (req, res) -> {
-            MySql sql = new MySql(SQL_CREDS);
-            try {
-                return endpoint.handle(req, res, sql);
-            } finally {
-                sql.destroy();
-            }
+            MySql sql = MySqlInstance.get();
+            return endpoint.handle(req, res, sql);
         };
     }
 
@@ -136,6 +170,14 @@ public class RecipeEndpoint {
     interface SQLEndpoint {
 
         Object handle(Request req, Response res, MySql sql) throws Exception;
+    }
+
+    static RecipeResponse<Object> unauthorized(String message) {
+        RecipeResponse<Object> response = new RecipeResponse<>();
+
+        response.setError(new RecipeResponse.RecipeError("401", message));
+
+        return response;
     }
 
 }
