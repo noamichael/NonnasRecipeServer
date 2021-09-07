@@ -1,5 +1,5 @@
 <div class="page-actions">
-  <button pButton type="button" *ngIf="!gateway" label="Add" (click)="openRecipe()" icon="pi pi-plus"
+  <button pButton type="button" *ngIf="loggedIn" label="Add" (click)="openRecipe()" icon="pi pi-plus"
     class="p-button-success"></button>
   <button pButton type="button" label="Clear" (click)="clearFilters(dv)" icon="pi pi-times"
     class="p-button-primary"></button>
