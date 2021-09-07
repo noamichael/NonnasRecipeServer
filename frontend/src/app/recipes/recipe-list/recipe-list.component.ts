@@ -10,6 +10,7 @@ import { RecipeTableService } from "../recipe-table.service";
 import { Utils } from "src/app/utils";
 import { LazyLoadEvent } from "primeng/api";
 import { DataView } from "primeng/dataview";
+import { UserService } from "src/app/shared/user.service";
 
 interface Filters {
   recipeName?: string;
@@ -37,6 +38,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     private recipeTableService: RecipeTableService,
     private route: ActivatedRoute,
     private router: Router,
+    private userService: UserService
   ) {}
 
   ngOnInit() {
@@ -117,5 +119,9 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     }
 
     this.router.navigate(["./", filters], { relativeTo: this.route });
+  }
+
+  get loggedIn() {
+    return this.userService.isSignedIn();
   }
 }

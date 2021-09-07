@@ -12,5 +12,5 @@ export interface Recipe {
     steps: RecipeStep[]
     ingredients: Ingredient[]
     userId?: number
-    userFulleName?: string
+    userFullName?: string
 }
