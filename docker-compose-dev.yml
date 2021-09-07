@@ -17,6 +17,7 @@ services:
       MYSQL_USER: mysql_user
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      USER_IMPERSONATION: ${USER_IMPERSONATION}
   database:
     build: ./database
     environment:

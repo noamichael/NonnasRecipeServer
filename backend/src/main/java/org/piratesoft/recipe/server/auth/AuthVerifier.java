@@ -27,6 +27,20 @@ public class AuthVerifier {
             .setAudience(Collections.singletonList(CLIENT_ID)).build();
 
     public RecipeUser verify(String token) {
+
+        String userImpersonation = System.getenv("USER_IMPERSONATION");
+
+        // TODO: implement way to impersonate any user
+        if (userImpersonation != null) {
+            RecipeUser admin = new RecipeUser();
+            String[] parts = userImpersonation.split(":");
+            admin.email = parts[0];
+            admin.id = 1;
+            admin.name = parts[1];
+            
+            return admin;
+        }
+
         try {
             GoogleIdToken idToken = _verifier.verify(token);
 

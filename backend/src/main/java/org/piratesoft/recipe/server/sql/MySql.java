@@ -146,7 +146,6 @@ public class MySql {
             } else {
                 // Associate this recipe with a user
                 insertAndUpdateArgs.add(recipe.getUserId());
-                System.out.println("Saving recipe w/ user " + recipe.getUserId());
                 String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize, weightWatchers, points, userId) VALUES(?,?,?,?,?,?,?)";
                 id = executeInsert(insert, insertAndUpdateArgs);
             }

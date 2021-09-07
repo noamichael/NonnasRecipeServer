@@ -82,8 +82,9 @@ public class AuthEndpoint {
 
     public static void before(Request request, Response response) {
         String jwt = request.cookie(JWT_COOKIE);
+        String userImpersonation = System.getenv("USER_IMPERSONATION");
 
-        if (StringUtil.isNullOrEmpty(jwt)) {
+        if (userImpersonation == null && StringUtil.isNullOrEmpty(jwt)) {
             return;
         }
 
@@ -114,10 +115,9 @@ public class AuthEndpoint {
             return Optional.empty();
         }
 
-
         // Copy GCP sent values in database model
         RecipeUser fromDb = userFromDb.get(0);
-        
+
         fromDb.picture = requestUser.picture;
 
         return Optional.of(fromDb);
