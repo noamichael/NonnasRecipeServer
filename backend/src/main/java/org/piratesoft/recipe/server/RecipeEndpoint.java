@@ -85,8 +85,6 @@ public class RecipeEndpoint {
                 }
             }
 
-            System.out.println("Setting recipe user to " + user.id);
-
             // Mark this recipe belongs to the current user
             recipe.setUserId(user.id);
 
