@@ -13,7 +13,7 @@ services:
     ports:
       - "6789:6789" #Only expose public port
     environment:
-      DATABASE_HOST: database
+      DATABASE_HOST: ${DATABASE_HOST}
       MYSQL_USER: mysql_user
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}

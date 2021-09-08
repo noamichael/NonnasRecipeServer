@@ -1,7 +1,6 @@
 package org.piratesoft.recipe.server.sql;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +9,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.sql.DataSource;
+
 import org.piratesoft.recipe.server.schema.Ingredient;
 import org.piratesoft.recipe.server.schema.Recipe;
 import org.piratesoft.recipe.server.schema.RecipeResponse;
@@ -25,10 +27,9 @@ public class MySql {
 
     private final static Logger LOGGER = Logger.getLogger(MySql.class.getName());
     private Connection con = null;
-    private final String URL = "jdbc:mysql://" + System.getenv("DATABASE_HOST") + ":3306/NonnasRecipes";
 
-    public MySql(SqlCreds creds) throws SQLException {
-        con = DriverManager.getConnection(URL, creds.getUsername(), creds.getPassword());
+    public MySql(DataSource dataSource) throws SQLException {
+        con = dataSource.getConnection();
     }
 
     public void destroy() {
