@@ -43,6 +43,7 @@ public class RecipeServer {
             res.status(500);
             res.type("text/plain");
             res.body("Internal Server Error");
+            ex.printStackTrace();
         });
 
         doWaitForInput(publicService);

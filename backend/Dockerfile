@@ -8,14 +8,20 @@ COPY  . .
 RUN mvn package
 
 # Release Image
-FROM openjdk:18-ea-11-alpine3.13 as release
+FROM openjdk:11.0.12-slim as release
 
-USER 1001
+ENV GOOGLE_APPLICATION_CREDENTIALS="/opt/app/secrets/database-sa.json"
+
+USER root
 
 WORKDIR /opt/app
 
+COPY ./secrets/database-sa.json ./secrets/database-sa.json
+
 COPY --from=builder /tmp/build/target/NonnasRecipeServer-1.0-SNAPSHOT-jar-with-dependencies.jar ./NonnasRecipeServer.jar
 
-EXPOSE 6789 7890
+EXPOSE 6789
 
-ENTRYPOINT ["java", "-jar", "NonnasRecipeServer.jar" ]
+USER 1001
+
+ENTRYPOINT ["java", "-jar", "NonnasRecipeServer.jar"]
