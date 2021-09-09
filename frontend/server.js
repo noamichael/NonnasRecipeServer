@@ -1,9 +1,12 @@
 const express = require('express');
 const path = require('path');
 const proxy = require('express-http-proxy');
+const helmet = require("helmet");
 
 const app = express();
 const api = process.env.PUBLIC_API || 'backend:6789';
+
+app.use(helmet());
 
 // Point static path to dist
 app.use(express.static(path.join(__dirname, 'dist')));

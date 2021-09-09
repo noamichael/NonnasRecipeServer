@@ -30,6 +30,7 @@ export class UserService {
         this.verify(response.credential).then((verifyRes) => {
           if (verifyRes["ok"]) {
             const user = jwt_decode(response.credential) as User;
+            user.id = verifyRes["id"];
             this.updateUser(user);
           }
         });
