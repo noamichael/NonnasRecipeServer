@@ -10,10 +10,9 @@ services:
   backend:
     build: ./backend
     ports:
-      - "6789:6789"
-      - "7890:7890"
+      - "6789:8080"
     environment:
-      DATABASE_HOST: ${DATABASE_HOST}
+      JDBC_CONNECTION_STRING: jdbc:mysql://database:3306/NonnasRecipes
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}

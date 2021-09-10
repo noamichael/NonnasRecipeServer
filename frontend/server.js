@@ -6,7 +6,16 @@ const helmet = require("helmet");
 const app = express();
 const api = process.env.PUBLIC_API || 'backend:6789';
 
-app.use(helmet());
+app.use(helmet.dnsPrefetchControl());
+app.use(helmet.expectCt());
+app.use(helmet.frameguard());
+app.use(helmet.hidePoweredBy());
+app.use(helmet.hsts());
+app.use(helmet.ieNoOpen());
+app.use(helmet.noSniff());
+app.use(helmet.permittedCrossDomainPolicies());
+app.use(helmet.referrerPolicy());
+app.use(helmet.xssFilter());
 
 // Point static path to dist
 app.use(express.static(path.join(__dirname, 'dist')));
