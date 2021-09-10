@@ -27,7 +27,7 @@ public class RecipeServer {
     public void startServer(String... args) {
         Service publicService = ignite().port(PORT);
 
-        System.out.println(String.format("Starting server with port: %s}", PORT));
+        System.out.println(String.format("Starting server with port: %s", PORT));
         AuthEndpoint.setupEndpoints(publicService);
         RecipeEndpoint.setupEndpoints(publicService);
 

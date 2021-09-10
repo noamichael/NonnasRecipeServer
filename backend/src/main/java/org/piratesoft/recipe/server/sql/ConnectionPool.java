@@ -25,13 +25,20 @@ public final class ConnectionPool {
         // JDBC Socket Factory
         // https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory#creating-the-jdbc-url
 
-        // Configure which instance and what database user to connect with.
-        config.setJdbcUrl(String.format("jdbc:mysql:///%s", "NonnasRecipes"));
+        String jdbcConnectionString = System.getenv("JDBC_CONNECTION_STRING");
+
+        if (jdbcConnectionString != null) { // for local development
+            config.setJdbcUrl(jdbcConnectionString);
+        } else { 
+            // Configure which instance and what database user to connect with.
+            config.setJdbcUrl(String.format("jdbc:mysql:///%s", "NonnasRecipes"));
+            config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory");
+            config.addDataSourceProperty("cloudSqlInstance", "***REMOVED***");
+        }
+
         config.setUsername(creds.getUsername()); // e.g. "***REMOVED***", "mysql"
         config.setPassword(creds.getPassword()); // e.g. "my-password"
 
-        config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory");
-        config.addDataSourceProperty("cloudSqlInstance", "***REMOVED***");
 
         // The ipTypes argument can be used to specify a comma delimited list of
         // preferred IP types
@@ -48,12 +55,12 @@ public final class ConnectionPool {
         // will keep. Ideal
         // values for this setting are highly variable on app design, infrastructure,
         // and database.
-        config.setMaximumPoolSize(5);
+        config.setMaximumPoolSize(6);
         // minimumIdle is the minimum number of idle connections Hikari maintains in the
         // pool.
         // Additional connections will be established to meet this value unless the pool
         // is full.
-        config.setMinimumIdle(5);
+        config.setMinimumIdle(0);
         // [END cloud_sql_mysql_servlet_limit]
 
         // [START cloud_sql_mysql_servlet_timeout]
