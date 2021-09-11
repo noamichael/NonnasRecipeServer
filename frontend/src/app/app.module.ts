@@ -13,6 +13,7 @@ import { UserService } from "./shared/user.service";
 import { OverlayPanelModule } from "primeng/overlaypanel";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { SidebarModule } from 'primeng/sidebar';
+import { PageActionModule } from "./page-action/page-action.module";
 
 const initialize = (recipeService: RecipeService, userService: UserService) => {
   return () =>
@@ -37,6 +38,7 @@ const initialize = (recipeService: RecipeService, userService: UserService) => {
     OverlayPanelModule,
     ConfirmDialogModule,
     SidebarModule,
+    PageActionModule,
   ],
   providers: [
     RecipeService,

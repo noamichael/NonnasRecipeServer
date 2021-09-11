@@ -30,18 +30,33 @@ export class RecipeListComponent implements OnInit, OnDestroy {
 
   filters: Filters = {};
   recipeTypes: TypeOption[];
+  showFilters: boolean;
+  mobile = false
 
   private doFilter: Function;
   private firstLoad = true;
+  private mediaQuery: MediaQueryList;
+
+  onMediaMatch = (e: MediaQueryListEvent) => {
+    this.mobile = e.matches;
+    if (!e.matches) {
+      this.showFilters = false;
+    }
+  };
 
   constructor(
     private recipeTableService: RecipeTableService,
     private route: ActivatedRoute,
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
   ) {}
 
   ngOnInit() {
+    this.mediaQuery = window.matchMedia("(max-width: 600px)");
+    this.mobile = this.mediaQuery.matches;
+
+    this.mediaQuery.addEventListener("change", this.onMediaMatch);
+
     this.route.data.subscribe((data) => {
       this.recipes = data.recipes;
     });
@@ -69,6 +84,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.mediaQuery.removeEventListener("change", this.onMediaMatch);
   }
 
   openRecipe(recipe?: Recipe) {

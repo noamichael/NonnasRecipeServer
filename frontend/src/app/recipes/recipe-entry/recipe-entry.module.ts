@@ -13,6 +13,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { RecipeEntryComponent, RecipeResolver, CanDeactivateEntry, CanActivateEntry } from './recipe-entry.component';
 import { RecipeDisplayComponent } from './recipe-display/recipe-display.component';
 import { CardModule } from 'primeng/card';
+import { PageActionModule } from 'src/app/page-action/page-action.module';
 
 @NgModule({
   declarations: [RecipeEntryComponent, RecipeDisplayComponent],
@@ -48,7 +49,8 @@ import { CardModule } from 'primeng/card';
     ButtonModule,
     SharedModule,
     CardModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    PageActionModule,
   ]
 })
 export class RecipeEntryModule { }

@@ -1,18 +1,27 @@
 <div class="header">
-  <div class="hamburger-and-header">
-    <button pButton icon="pi pi-list" (click)="toggleSidebar()"></button>
-    <h1>
-      <a href="/">
-        <span class="pi pi-star"></span>
-        <span class="text">{{appName}} Kitchen</span>
-        <span class="pi pi-star"></span>
-      </a>
-    </h1>
+  <div class="header-inner">
+    <div class="hamburger-and-header">
+      <button pButton icon="pi pi-list" (click)="toggleSidebar()"></button>
+      <h1>
+        <a href="/">
+          <span class="text text-desktop">{{appName}} Kitchen</span>
+          <span class="text text-mobile">NR</span>
+        </a>
+      </h1>
+    </div>
+    <div class="page-actions">
+      <button *ngFor="let pageAction of pageActions" pButton type="button" [label]="pageAction.label"
+        [icon]="pageAction.icon" class="desktop-{{pageAction.desktop}} mobile-{{pageAction.mobile}} p-button-{{pageAction.color}}"
+        (click)="pageAction.onClick($event)">
+      </button>
+    </div>
   </div>
   <p-progressBar [hidden]="!loading" [style]="{height: '0.25em'}" mode="indeterminate"></p-progressBar>
   <p-progressBar [hidden]="loading" [showValue]="false" [style]="{height: '0.25em'}" value="100"></p-progressBar>
 </div>
-<router-outlet></router-outlet>
+<div class="page">
+  <router-outlet></router-outlet>
+</div>
 <div class="keyboard-wrapper">
   <button pButton icon="pi pi-times" (click)="closeKeyboard()"></button>
   <div class="simple-keyboard"></div>
@@ -33,6 +42,5 @@
   </button>
   <div id="googleLogin"></div>
 </p-sidebar>
-
 
 <p-confirmDialog key="appConfirm" header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>

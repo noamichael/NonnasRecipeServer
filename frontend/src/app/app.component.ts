@@ -10,6 +10,7 @@ import { User } from "./schema/user";
 import { KeyboardService } from "./shared/keyboard.service";
 import { UserService } from "./shared/user.service";
 import { ConfirmationService } from "primeng/api";
+import { PageActionService } from "./shared/page-action.service";
 
 @Component({
   selector: "nr-app",
@@ -31,6 +32,7 @@ export class AppComponent implements OnInit {
     public keyboardService: KeyboardService,
     private confirmationService: ConfirmationService,
     private changeDetector: ChangeDetectorRef,
+    private pageActionService: PageActionService
   ) {}
 
   ngOnInit() {
@@ -107,4 +109,9 @@ export class AppComponent implements OnInit {
       },
     });
   }
+
+  get pageActions() {
+    return this.pageActionService.pageActions;
+  }
+
 }

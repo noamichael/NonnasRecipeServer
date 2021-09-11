@@ -38,8 +38,33 @@ p-tristatecheckbox {
     color: teal;
 }
 
-@media screen and (max-width: 900px) {
-    .recipe-fields {
+.mobile-search-box {
+    display: none;
+}
+
+@media screen and (max-width: 600px) { 
+    ::ng-deep .p-dataview-header {
+        display: none;
+    }
+
+    .table-filters {
+        justify-content: center;
+        align-items: stretch;
         flex-direction: column;
     }
+
+    .table-filters > * {
+        margin-bottom: 1em;
+    }
+
+    p-checkbox,
+    p-tristatecheckbox {
+        color: black;
+    }
+
+    .mobile-search-box {
+        display: block;
+        padding: 0.5em;
+    }
+    
 }
