@@ -55,7 +55,7 @@ public final class ConnectionPool {
         // will keep. Ideal
         // values for this setting are highly variable on app design, infrastructure,
         // and database.
-        config.setMaximumPoolSize(6);
+        config.setMaximumPoolSize(4);
         // minimumIdle is the minimum number of idle connections Hikari maintains in the
         // pool.
         // Additional connections will be established to meet this value unless the pool
@@ -73,7 +73,7 @@ public final class ConnectionPool {
         // idleTimeout is the maximum amount of time a connection can sit in the pool.
         // Connections that
         // sit idle for this many milliseconds are retried if minimumIdle is exceeded.
-        config.setIdleTimeout(600000); // 10 minutes
+        config.setIdleTimeout(300000); // 5 minutes
         // [END cloud_sql_mysql_servlet_timeout]
 
         // [START cloud_sql_mysql_servlet_backoff]
