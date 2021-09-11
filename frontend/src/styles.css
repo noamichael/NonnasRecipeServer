@@ -20,18 +20,6 @@ body {
     padding: 0.5em;
 }
 
-.page-actions {
-    position: absolute;
-    display: flex;
-    justify-content: flex-end;
-    top: 0.3em;
-    right: 0;
-}
-
-.page-actions > button {
-    margin-right: 1em;
-}
-
 .p-card .p-card-title {
     color: darkcyan;
 }
@@ -74,4 +62,8 @@ body {
 
 .keyboard-wrapper .simple-keyboard.hg-theme-default.hg-layout-default .hg-button{
     height: 50px;
+}
+
+body .p-sidebar-bottom {
+    height: 30vh;
 }

@@ -12,6 +12,8 @@ import { TriStateCheckboxModule } from "primeng/tristatecheckbox";
 import { RecipesResolver } from "../recipes.component";
 import { SharedModule } from "src/app/shared/shared.module";
 import { CheckboxModule } from "primeng/checkbox";
+import { PageActionModule } from "src/app/page-action/page-action.module";
+import { DialogModule } from "primeng/dialog";
 
 @NgModule({
   declarations: [RecipeListComponent],
@@ -35,6 +37,8 @@ import { CheckboxModule } from "primeng/checkbox";
     TriStateCheckboxModule,
     SharedModule,
     CheckboxModule,
+    PageActionModule,
+    DialogModule,
   ],
 })
 export class RecipeListModule {}

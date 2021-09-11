@@ -1,31 +1,48 @@
-<div class="page-actions">
-  <button pButton type="button" *ngIf="loggedIn" label="Add" (click)="openRecipe()" icon="pi pi-plus"
-    class="p-button-success"></button>
-  <button pButton type="button" label="Clear" (click)="clearFilters(dv)" icon="pi pi-times"
-    class="p-button-primary"></button>
+<nr-page-action *ngIf="loggedIn" label="Add" icon="pi pi-plus" desktop="topbar" mobile="topbar" (click)="openRecipe()"
+  color="success">
+</nr-page-action>
+<nr-page-action label="Clear Filters" icon="pi pi-times" desktop="topbar" mobile="hidden" (click)="clearFilters(dv)"
+  color="primary">
+</nr-page-action>
+<nr-page-action icon="pi pi-filter" color="primary" desktop="hidden" mobile="topbar"
+  (click)="showFilters = !showFilters">
+</nr-page-action>
+
+<ng-template #pageFilters>
+  <div class="table-filters">
+    <div>
+      <input type="text" class="table-filter" [(ngModel)]="filters.recipeName"
+        (ngModelChange)="onFilterChange('recipeName', dv)" placeholder="Recipe Name" pInputText>
+    </div>
+    <div>
+      <p-dropdown [options]="recipeTypes" [(ngModel)]="filters.recipeType"
+        (ngModelChange)="onFilterChange('recipeType', dv)" name="recipeType" [style]="{width: '100%'}"
+        [(ngModel)]="filters.recipeType" optionLabel="label" placeholder="-- Recipe Type --" required>
+      </p-dropdown>
+    </div>
+    <div>
+      <p-checkbox name="mine" value="mine" label="Mine" [binary]="true" [(ngModel)]="filters.mine"
+        (ngModelChange)="onFilterChange('mine', dv)"></p-checkbox>
+    </div>
+    <div>
+      <p-triStateCheckbox [(ngModel)]="filters.weightWatchers" label="WW"
+        (ngModelChange)="onFilterChange('weightWatchers', dv)"></p-triStateCheckbox>
+    </div>
+  </div>
+</ng-template>
+
+<div class="mobile-search-box">
+  <div class="p-inputgroup">
+    <input type="text" class="table-filter" [(ngModel)]="filters.recipeName"
+      (ngModelChange)="onFilterChange('recipeName', dv)" placeholder="Recipe Name" pInputText>
+    <button type="button" pButton pRipple icon="pi pi-times" (click)="clearFilters(dv)" class="p-button-danger"></button>
+  </div>
 </div>
-<p-dataView #dv (onLazyLoad)="onLazyLoad($event)" [value]="recipes.data" [lazy]="true" [paginator]="true"
+
+<p-dataView #dv (onLazyLoad)="onLazyLoad($event)" [value]="recipes.data" [lazy]="true" [paginator]="true" [showPageLinks]="!mobile"
   [rows]="recipes.count" dataKey="id" [totalRecords]="recipes.totalRecordCount" paginatorPosition="bottom">
   <p-header>
-    <div class="table-filters">
-      <div>
-        <input type="text" class="table-filter" [(ngModel)]="filters.recipeName"
-          (ngModelChange)="onFilterChange('recipeName', dv)" placeholder="Recipe Name" pInputText>
-      </div>
-      <div>
-        <p-dropdown [options]="recipeTypes" [(ngModel)]="filters.recipeType"
-          (ngModelChange)="onFilterChange('recipeType', dv)" name="recipeType" [style]="{width: '100%'}"
-          [(ngModel)]="filters.recipeType" optionLabel="label" placeholder="-- Recipe Type --" required>
-        </p-dropdown>
-      </div>
-      <div>
-        <p-checkbox name="mine" value="mine" label="Mine" [binary]="true" [(ngModel)]="filters.mine"  (ngModelChange)="onFilterChange('mine', dv)"></p-checkbox>
-      </div>
-      <div>
-        <p-triStateCheckbox [(ngModel)]="filters.weightWatchers" label="WW"
-          (ngModelChange)="onFilterChange('weightWatchers', dv)"></p-triStateCheckbox>
-      </div>
-    </div>
+    <ng-container *ngTemplateOutlet="pageFilters"></ng-container>
   </p-header>
   <ng-template let-recipe pTemplate="listItem">
     <p-card class="recipe-card" [header]="recipe.recipeName" (click)="onRowSelect(recipe)">
@@ -54,3 +71,13 @@
     </p-card>
   </ng-template>
 </p-dataView>
+
+<p-dialog header="Filter Recipes" [(visible)]="showFilters" [style]="{width: '95%'}">
+  <ng-container *ngTemplateOutlet="pageFilters"></ng-container>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Clear Filters" icon="pi pi-times" (click)="clearFilters(dv)" class="p-button-danger">
+    </button>
+    <button pButton type="button" label="Done" icon="pi pi-check" (click)="showFilters = false">
+    </button>
+  </ng-template>
+</p-dialog>
