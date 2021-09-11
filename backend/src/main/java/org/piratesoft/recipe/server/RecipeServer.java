@@ -15,7 +15,7 @@ import static spark.Service.ignite;
  */
 public class RecipeServer {
 
-    final int PORT = 8080;
+    final int PORT = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
 
     private Thread waitForInput;
 
