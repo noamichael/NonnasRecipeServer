@@ -42,7 +42,18 @@ p-tristatecheckbox {
     display: none;
 }
 
-@media screen and (max-width: 600px) { 
+label {
+    font-weight: bold;
+    display: block;
+    color: white;
+    margin-bottom: 0.5em;
+}
+
+::ng-deep .p-inputswitch .p-inputswitch-slider {
+    background-color: #888888;
+}
+
+@media screen and (max-width: 750px) { 
     ::ng-deep .p-dataview-header {
         display: none;
     }
@@ -59,6 +70,10 @@ p-tristatecheckbox {
 
     p-checkbox,
     p-tristatecheckbox {
+        color: black;
+    }
+
+    label {
         color: black;
     }
 

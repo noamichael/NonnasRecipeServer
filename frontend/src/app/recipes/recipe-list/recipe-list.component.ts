@@ -17,7 +17,7 @@ interface Filters {
   recipeType?: TypeOption | string;
   weightWatchers?: boolean;
   page?: number;
-  mine?: boolean;
+  userId?: TypeOption | string;
 }
 
 @Component({
@@ -30,6 +30,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
 
   filters: Filters = {};
   recipeTypes: TypeOption[];
+  recipeOwners: TypeOption[];
   showFilters: boolean;
   mobile = false
 
@@ -49,10 +50,11 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private userService: UserService,
+    private recipeService: RecipeService,
   ) {}
 
   ngOnInit() {
-    this.mediaQuery = window.matchMedia("(max-width: 600px)");
+    this.mediaQuery = window.matchMedia("(max-width: 750px)");
     this.mobile = this.mediaQuery.matches;
 
     this.mediaQuery.addEventListener("change", this.onMediaMatch);
@@ -61,6 +63,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       this.recipes = data.recipes;
     });
     this.recipeTypes = this.recipeTableService.recipeTypes;
+    this.recipeOwners = this.recipeTableService.recipeOwners;
     this.route.params.subscribe((params) => {
       this.filters.recipeName = params.recipeName;
       switch ("" + params.weightWatchers) {
@@ -76,7 +79,9 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       this.filters.recipeType = this.recipeTypes.filter((rt) =>
         rt.value == params.recipeType
       )[0];
-      this.filters.mine = params.mine;
+      this.filters.userId = this.recipeOwners.filter((rt) =>
+        rt.value == params.userId
+      )[0];
     });
     this.doFilter = Utils.debounce((field: string, dt: DataView) => {
       this.onLazyLoad({ first: 0, rows: this.recipes.count });
@@ -91,8 +96,11 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     const id = recipe ? recipe.id : "new";
     const route = ["./", id];
     if (!recipe) {
-      route.push("edit");
+      route.push("0", "edit");
+    } else if (recipe.recipeName) {
+      route.push(this.recipeService.cleanRecipeName(recipe.recipeName))
     }
+
     this.router.navigate(route, { relativeTo: this.route });
   }
 
@@ -103,6 +111,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   clearFilters(table: DataView) {
     this.filters.recipeType = null;
     this.filters.recipeName = null;
+    this.filters.userId = null;
     this.filters.weightWatchers = null;
     this.filters.page = 1;
     this.onLazyLoad({ first: 0, rows: this.recipes.count });
@@ -126,12 +135,12 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     if (this.filters.recipeType && this.filters.recipeType["value"]) {
       filters.recipeType = this.filters.recipeType["value"];
     }
-    if (this.filters.weightWatchers != null) {
+    if (this.filters.weightWatchers) {
       filters.weightWatchers = this.filters.weightWatchers;
     }
 
-    if (this.filters.mine) {
-      filters.mine = this.filters.mine;
+    if (this.filters.userId && this.filters.userId['value']) {
+      filters.userId = this.filters.userId['value'];
     }
 
     this.router.navigate(["./", filters], { relativeTo: this.route });

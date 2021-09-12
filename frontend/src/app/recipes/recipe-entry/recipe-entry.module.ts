@@ -21,7 +21,7 @@ import { PageActionModule } from 'src/app/page-action/page-action.module';
   imports: [
     RouterModule.forChild([
       {
-        path: '',
+        path: ':nickname',
         resolve: {
           recipe: RecipeResolver
         },

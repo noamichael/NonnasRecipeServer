@@ -12,6 +12,7 @@ import org.piratesoft.recipe.server.auth.VerifyResponse;
 import org.piratesoft.recipe.server.schema.RecipeUser;
 import org.piratesoft.recipe.server.sql.MySql;
 import org.piratesoft.recipe.server.sql.MySqlInstance;
+import org.piratesoft.recipe.server.sql.repository.UserRepository;
 import org.piratesoft.recipe.server.util.StringUtil;
 
 import spark.Request;
@@ -41,16 +42,16 @@ public class AuthEndpoint {
             RecipeUser user = VERIFIER.verify(request.token);
 
             if (user != null) {
-                MySql sql = MySqlInstance.get();
+                UserRepository repository = new UserRepository(MySqlInstance.get());
                 // Make an entry in the database for this user if we haven't
                 // seen them before
-                int userId = sql.saveUser(user);
+                int userId = repository.saveUser(user);
                 if (userId < 0) {
                     res.status(500);
                     return "Error signing in.";
                 }
                 // Lookup user from database
-                user = sql.getUser(userId).get(0);
+                user = repository.getUser(userId).get(0);
                 // String name, String value, int maxAge, boolean secured, boolean httpOnly
                 res.cookie("/", JWT_COOKIE, request.token, TWENTY_FOUR_HOURS, true, true);
                 return new VerifyResponse(true, user);
@@ -106,10 +107,12 @@ public class AuthEndpoint {
             return reqUser;
         }
 
+        UserRepository repository = new UserRepository(sql);
+
         RecipeUser requestUser = reqUser.get();
 
         // Lookup the user by email in the database
-        List<RecipeUser> userFromDb = sql.getUser(requestUser.email);
+        List<RecipeUser> userFromDb = repository.getUser(requestUser.email);
 
         if (userFromDb.size() < 1) {
             return Optional.empty();
