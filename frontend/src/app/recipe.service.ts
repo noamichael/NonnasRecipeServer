@@ -48,6 +48,10 @@ export class RecipeService {
     return this.http.get<RecipeResponse<Recipe[]>>(this.getRecipesUrl(), { params });
   }
 
+  getRecipeOwners() {
+     return this.http.get<RecipeResponse<User[]>>(`${this.getRecipesUrl()}/owners`, { });
+  }
+
   getRecipeTypes() {
     return this.http.get<RecipeResponse<string[]>>(`${this.basePublicUrl}/recipe-types`);
   }
@@ -62,6 +66,10 @@ export class RecipeService {
 
   ownsRecipe(user: User, recipe: Recipe) {
     return !recipe.id || (recipe.userId === user.id);
+  }
+
+  cleanRecipeName(recipeName: string) {
+    return recipeName.toLowerCase().replace(/\s/g, '-').replace(/[\(\)]/g, '');
   }
 
 }

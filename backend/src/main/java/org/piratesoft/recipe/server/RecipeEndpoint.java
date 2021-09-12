@@ -14,6 +14,7 @@ import org.piratesoft.recipe.server.schema.RecipeResponse;
 import org.piratesoft.recipe.server.schema.RecipeUser;
 import org.piratesoft.recipe.server.sql.MySql;
 import org.piratesoft.recipe.server.sql.MySqlInstance;
+import org.piratesoft.recipe.server.sql.repository.RecipeRepository;
 
 import spark.QueryParamsMap;
 import spark.Request;
@@ -44,15 +45,22 @@ public class RecipeEndpoint {
         }, JSON);
 
         service.get("/recipes", sqlRoute((req, res, sql) -> {
+            RecipeRepository repository = new RecipeRepository(sql);
             Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(req, sql);
             int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
             int count = Integer.valueOf(req.queryParamOrDefault("count", "1000"));
-            return sql.getRecipes(page, count, reqUser.orElse(null), paramsToMap(req.queryMap()));
+            return repository.getRecipes(page, count, reqUser.orElse(null), paramsToMap(req.queryMap()));
+        }), JSON);
+
+        service.get("/recipes/owners", sqlRoute((req, res, sql) -> {
+            RecipeRepository repository = new RecipeRepository(sql);
+            return repository.getRecipeOwners();
         }), JSON);
 
         service.get("/recipes/:id", sqlRoute((req, res, sql) -> {
+            RecipeRepository repository = new RecipeRepository(sql);
             int recipeId = Integer.valueOf(req.params(":id"));
-            Optional<Recipe> recipeOptional = sql.getRecipe(recipeId);
+            Optional<Recipe> recipeOptional = repository.getRecipe(recipeId);
             if (!recipeOptional.isPresent()) {
                 res.status(404);
                 return "Recipe not found";
@@ -69,6 +77,7 @@ public class RecipeEndpoint {
                 res.status(401);
                 return unauthorized("You need to be signed in to save recipes");
             }
+            RecipeRepository repository = new RecipeRepository(sql);
 
             RecipeUser user = reqUser.get();
 
@@ -77,7 +86,7 @@ public class RecipeEndpoint {
             Integer id = recipe.getId();
 
             if (id != null) {
-                Optional<Recipe> oldRecipe = sql.getRecipe(id);
+                Optional<Recipe> oldRecipe = repository.getRecipe(id);
 
                 if (oldRecipe.isPresent() && oldRecipe.get().getUserId() != user.id) {
                     res.status(401);
@@ -88,7 +97,7 @@ public class RecipeEndpoint {
             // Mark this recipe belongs to the current user
             recipe.setUserId(user.id);
 
-            id = sql.saveRecipe(recipe);
+            id = repository.saveRecipe(recipe);
             if (id == -1) {
                 res.status(500);
                 return "Could not save recipe. Unknown SQL error";
@@ -106,17 +115,19 @@ public class RecipeEndpoint {
                 return unauthorized("You need to be signed in to save recipes");
             }
 
+            RecipeRepository repository = new RecipeRepository(sql);
+
             RecipeUser user = reqUser.get();
             int recipeId = Integer.valueOf(req.params(":id"));
 
-            Optional<Recipe> oldRecipe = sql.getRecipe(recipeId);
+            Optional<Recipe> oldRecipe = repository.getRecipe(recipeId);
 
             if (oldRecipe.isPresent() && oldRecipe.get().getUserId() != user.id) {
                 res.status(401);
                 return unauthorized("You can only delete recipes that belong to you.");
             }
 
-            int id = sql.deleteRecipe(recipeId);
+            int id = repository.deleteRecipe(recipeId);
             if (id == -1) {
                 res.status(500);
                 return "Could not delete recipe. Unknown SQL error";

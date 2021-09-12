@@ -3,21 +3,11 @@ package org.piratesoft.recipe.server.sql;
 import java.sql.Connection;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.sql.DataSource;
-
-import org.piratesoft.recipe.server.schema.Ingredient;
-import org.piratesoft.recipe.server.schema.Recipe;
-import org.piratesoft.recipe.server.schema.RecipeResponse;
-import org.piratesoft.recipe.server.schema.RecipeStep;
-import org.piratesoft.recipe.server.schema.RecipeUser;
-import org.piratesoft.recipe.server.util.StringUtil;
 
 /**
  *
@@ -40,219 +30,11 @@ public class MySql {
         }
     }
 
-    public RecipeResponse<List<Recipe>> getRecipes(int page, int count, RecipeUser user,
-            Map<String, List<String>> queryParams) {
-        RecipeResponse<List<Recipe>> response = new RecipeResponse<>();
-        List<Object> params = new ArrayList<>();
-        String where = "";
-
-        if (queryParams.containsKey("recipeName")) {
-            List<String> recipeNames = queryParams.get("recipeName");
-            for (String recipeName : recipeNames) {
-                where = where.concat(" AND R.recipeName LIKE ?");
-                params.add("%" + recipeName + "%");
-            }
-        }
-
-        if (queryParams.containsKey("recipeType")) {
-            List<String> recipeTypes = queryParams.get("recipeType");
-            for (String recipeType : recipeTypes) {
-                where = where.concat(" AND R.recipeType = ?");
-                params.add(recipeType);
-            }
-        }
-
-        if (queryParams.containsKey("weightWatchers")) {
-            String weightWatchers = queryParams.get("weightWatchers").get(0);
-            if (!"null".equals(weightWatchers)) {
-                where = where.concat(" AND R.weightWatchers = ?");
-                params.add(Boolean.valueOf(weightWatchers.trim()));
-            }
-        }
-
-        if (queryParams.containsKey("mine") && user != null) {
-            where = where.concat(" AND R.userId = ?");
-            params.add(user.id);
-        }
-
-        int offset = count * (page - 1);
-        List<Object> paramsWithOffset = new ArrayList<>(params);
-        paramsWithOffset.addAll(Arrays.asList(count, offset));
-        String select = this.baseRecipeSelect();
-        List<Recipe> pagedResult = executeQuery(
-                String.format(select + " WHERE 1 = 1%s ORDER BY R.recipeName ASC LIMIT ? OFFSET ?", where),
-                paramsWithOffset, this::resultSetToRecipe);
-        int totalRecordCount = executeQuery(
-                String.format("SELECT COUNT(R.ID) as totalRecordCount FROM Recipe R WHERE 1 = 1%s", where), params,
-                rs -> rs.getInt("totalRecordCount")).get(0);
-
-        response.setCount(count);
-        response.setData(pagedResult);
-        response.setPage(page);
-        response.setTotalRecordCount(totalRecordCount);
-
-        return response;
-    }
-
-    private String baseRecipeSelect() {
-        return "SELECT R.*, U.fullName FROM Recipe R INNER JOIN RecipeUser U ON U.id = R.userId";
-    }
-
-    public Optional<Recipe> getRecipe(int id) {
-        List<Recipe> recipeResult = executeQuery(this.baseRecipeSelect() + " WHERE R.id = ?", Arrays.asList(id),
-                this::resultSetToRecipe);
-
-        if (recipeResult.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Recipe recipe = recipeResult.get(0);
-
-        recipe.setIngredients(getIngredients(id));
-        recipe.setSteps(getRecipeSteps(id));
-
-        // load steps and ingredients
-        return Optional.of(recipe);
-    }
-
-    public int deleteRecipe(int id) {
-        return runInTrx(() -> {
-            deleteStepsAndIngredients(id);
-            return executeUpdate("DELETE FROM Recipe WHERE ID = ?", Arrays.asList(id));
-        }, -1);
-    }
-
-    public int saveRecipe(Recipe recipe) {
-        return runInTrx(() -> {
-            Integer id = recipe.getId();
-            List<Object> insertAndUpdateArgs = new ArrayList<>();
-            insertAndUpdateArgs.addAll(Arrays.asList(recipe.getRecipeName(),
-                    recipe.getRecipeType().toString().toUpperCase(), recipe.getCookTime(), recipe.getServingSize(),
-                    recipe.getWeightWatchers(), recipe.getPoints()));
-            if (id != null) {
-
-                String update = "UPDATE Recipe SET " + "recipeName = ?, " + "recipeType = ?, " + "cookTime = ?, "
-                        + "servingSize = ?, " + "weightWatchers = ?, " + "points = ? " + "WHERE ID = ?";
-
-                insertAndUpdateArgs.add(id);
-
-                int updateRecipeResult = executeUpdate(update, insertAndUpdateArgs);
-
-                if (updateRecipeResult < 1) {
-                    return -1;
-                }
-
-                deleteStepsAndIngredients(id);
-
-            } else {
-                // Associate this recipe with a user
-                insertAndUpdateArgs.add(recipe.getUserId());
-                String insert = "INSERT INTO Recipe (recipeName, recipeType, cookTime, servingSize, weightWatchers, points, userId) VALUES(?,?,?,?,?,?,?)";
-                id = executeInsert(insert, insertAndUpdateArgs);
-            }
-            final int recipeId = id;// need to use a final int for lambda
-
-            recipe.getIngredients().forEach(ingredient -> {
-                if (StringUtil.isNullOrEmpty(ingredient.getIngredientDescription())) {
-                    return;// this is equivlent to continue
-                }
-                String insertIngredient = "INSERT INTO Ingredient (recipeId, ingredientDescription) VALUES(?,?)";
-                executeInsert(insertIngredient, Arrays.asList(recipeId, ingredient.getIngredientDescription()));
-            });
-
-            List<RecipeStep> recipeSteps = recipe.getSteps();
-
-            for (int i = 0; i < recipeSteps.size(); i++) {
-                RecipeStep step = recipeSteps.get(i);
-                if (StringUtil.isNullOrEmpty(step.getStepDescription())) {
-                    continue;
-                }
-                String insertStep = "INSERT INTO RecipeStep (recipeId, stepOrder, stepDescription) VALUES(?,?,?)";
-                executeInsert(insertStep, Arrays.asList(recipeId, i + 1, step.getStepDescription()));
-            }
-
-            return recipeId;
-        }, -1);
-    }
-
-    public int saveUser(RecipeUser user) {
-
-        List<RecipeUser> userByEmail = getUser(user.email);
-
-        if (userByEmail.size() > 0) {
-            return userByEmail.get(0).id;
-        }
-
-        return runInTrx(() -> {
-            List<Object> insertAndUpdateArgs = new ArrayList<>();
-            insertAndUpdateArgs.addAll(Arrays.asList(user.email.trim().toLowerCase(), user.name));
-            return executeInsert("INSERT INTO RecipeUser (email, fullName) VALUES(?,?)", insertAndUpdateArgs);
-        }, -1);
-    }
-
-    public List<RecipeUser> getUser(int userId) {
-        return executeQuery("SELECT * FROM RecipeUser WHERE id = ?", Arrays.asList(userId), this::resultSetToUser);
-    }
-
-    public List<RecipeUser> getUser(String email) {
-        return executeQuery("SELECT * FROM RecipeUser WHERE email = ?", Arrays.asList(email.toLowerCase().trim()),
-                this::resultSetToUser);
-    }
-
-    List<Ingredient> getIngredients(int recipeId) {
-        return executeQuery("SELECT * FROM Ingredient WHERE recipeId = ?", Arrays.asList(recipeId), (rs) -> {
-            Ingredient ingredient = new Ingredient();
-            ingredient.setIngredientDescription(rs.getString("ingredientDescription"));
-            return ingredient;
-        });
-    }
-
-    List<RecipeStep> getRecipeSteps(int recipeId) {
-        return executeQuery("SELECT * FROM RecipeStep WHERE recipeId = ? ORDER BY stepOrder ASC",
-                Arrays.asList(recipeId), (rs) -> {
-                    RecipeStep recipeStep = new RecipeStep();
-                    recipeStep.setStepDescription(rs.getString("stepDescription"));
-                    return recipeStep;
-                });
-    }
-
-    Recipe resultSetToRecipe(ResultSet rs) throws SQLException {
-        Recipe recipe = new Recipe();
-
-        recipe.setId(rs.getInt("id"));
-        recipe.setRecipeType(Recipe.RecipeType.valueOf(rs.getString("recipeType").toUpperCase()));
-        recipe.setRecipeName(rs.getString("recipeName"));
-        recipe.setCookTime(rs.getString("cookTime"));
-        recipe.setServingSize(rs.getString("servingSize"));
-        recipe.setWeightWatchers(rs.getBoolean("weightWatchers"));
-        recipe.setPoints(rs.getInt("points"));
-        recipe.setUserId(rs.getInt("userId"));
-
-        // Join columns
-        recipe.setUserFullName(rs.getString("fullName"));
-
-        return recipe;
-    }
-
-    RecipeUser resultSetToUser(ResultSet rs) throws SQLException {
-        RecipeUser user = new RecipeUser();
-        user.email = rs.getString("email");
-        user.id = rs.getInt("id");
-        user.name = rs.getString("fullName");
-        return user;
-    }
-
-    void deleteStepsAndIngredients(int recipeId) {
-        String deleteTemplate = "DELETE FROM %s WHERE recipeId = ?";
-
-        executeUpdate(String.format(deleteTemplate, "Ingredient"), Arrays.asList(recipeId));
-        executeUpdate(String.format(deleteTemplate, "RecipeStep"), Arrays.asList(recipeId));
-    }
-
+    
     //////
     // Helper SQL methods
     /////
-    <T> List<T> executeQuery(String query, List<Object> params, SQLFunction<ResultSet, T> mapper) {
+    public <T> List<T> executeQuery(String query, List<Object> params, SQLFunction<ResultSet, T> mapper) {
         try {
             // create the java statement
             PreparedStatement st = prepare(query, params, Statement.NO_GENERATED_KEYS);
@@ -272,7 +54,7 @@ public class MySql {
         return null;
     }
 
-    PreparedStatement prepare(String query, List<Object> params, int options) throws SQLException {
+    public PreparedStatement prepare(String query, List<Object> params, int options) throws SQLException {
         PreparedStatement st = con.prepareStatement(query, options);
 
         for (int i = 0; i < params.size(); i++) {
@@ -291,7 +73,7 @@ public class MySql {
         return st;
     }
 
-    int executeUpdate(String query, List<Object> args) {
+    public int executeUpdate(String query, List<Object> args) {
         try {
             PreparedStatement statement = prepare(query, args, Statement.NO_GENERATED_KEYS);
             int r = statement.executeUpdate();
@@ -303,7 +85,7 @@ public class MySql {
         }
     }
 
-    int executeInsert(String query, List<Object> args) {
+    public int executeInsert(String query, List<Object> args) {
         try {
             PreparedStatement statement = prepare(query, args, Statement.RETURN_GENERATED_KEYS);
             statement.executeUpdate();
@@ -320,7 +102,7 @@ public class MySql {
         }
     }
 
-    private <T> T runInTrx(SQLAction<T> action, T defaultValue) {
+    public <T> T runInTrx(SQLAction<T> action, T defaultValue) {
         try {
             con.setAutoCommit(false);
             T result = action.run();
@@ -345,12 +127,12 @@ public class MySql {
         return defaultValue;
     }
 
-    interface SQLFunction<Arg, Return> {
+    public interface SQLFunction<Arg, Return> {
 
         Return apply(Arg arg) throws SQLException;
     }
 
-    interface SQLAction<Return> {
+    public interface SQLAction<Return> {
 
         Return run() throws SQLException;
     }
