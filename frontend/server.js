@@ -6,6 +6,8 @@ const helmet = require("helmet");
 const app = express();
 const api = process.env.PUBLIC_API || 'backend:6789';
 
+// Set security headers (excluding content policy)
+// since that breaks Angular's dyanimc styles
 app.use(helmet.dnsPrefetchControl());
 app.use(helmet.expectCt());
 app.use(helmet.frameguard());
@@ -18,13 +20,22 @@ app.use(helmet.referrerPolicy());
 app.use(helmet.xssFilter());
 
 // Point static path to dist
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist'), {
+    // Make sure the index.html is always loaded to
+    // avoid serving old angular dist files
+    setHeaders: (res, path, stat) => {
+        if (path.indexOf("index.html") > -1) {
+            noCache(res);
+        }
+    }
+}));
 
 // Proxy our api routes
 app.use('/api', doProxy(api, '/api'));
 
 // Catch all other routes and return the index file
 app.get('*', (req, res) => {
+    noCache(res);
     res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
@@ -44,3 +55,8 @@ function doProxy(proxyHost, replace) {
         }
     });
 }
+
+// Sets the Cache-Control header on the given request
+function noCache(res) {
+    res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
+} 
