@@ -14,6 +14,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 
 import org.piratesoft.recipe.server.schema.RecipeUser;
+import org.piratesoft.recipe.server.util.StringUtil;
 
 
 public class AuthVerifier {
@@ -31,7 +32,7 @@ public class AuthVerifier {
         String userImpersonation = System.getenv("USER_IMPERSONATION");
 
         // TODO: implement way to impersonate any user
-        if (userImpersonation != null) {
+        if (!StringUtil.isNullOrEmpty(userImpersonation)) {
             RecipeUser admin = new RecipeUser();
             String[] parts = userImpersonation.split(":");
             admin.email = parts[0];

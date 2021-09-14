@@ -8,6 +8,11 @@ declare const google: any;
 const client_id =
   "168337345714-natmvlg4lc80c2nfn8ld76ub9im586e4.apps.googleusercontent.com";
 
+export interface VerifyResponse {
+  ok: boolean,
+  user?: User
+}
+
 @Injectable({
   providedIn: "***REMOVED***",
 })
@@ -30,7 +35,7 @@ export class UserService {
         this.verify(response.credential).then((verifyRes) => {
           if (verifyRes["ok"]) {
             const user = jwt_decode(response.credential) as User;
-            user.id = verifyRes["id"];
+            user.id = verifyRes.user.id;
             this.updateUser(user);
           }
         });
@@ -54,8 +59,8 @@ export class UserService {
     );
   }
 
-  private verify(token: string) {
-    return this.http.post("/api/auth/verify", { token })
+  private verify(token: string): Promise<VerifyResponse> {
+    return this.http.post<VerifyResponse>("/api/auth/verify", { token })
       .toPromise();
   }
 

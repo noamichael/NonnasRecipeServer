@@ -85,7 +85,7 @@ public class AuthEndpoint {
         String jwt = request.cookie(JWT_COOKIE);
         String userImpersonation = System.getenv("USER_IMPERSONATION");
 
-        if (userImpersonation == null && StringUtil.isNullOrEmpty(jwt)) {
+        if (StringUtil.isNullOrEmpty(userImpersonation) && StringUtil.isNullOrEmpty(jwt)) {
             return;
         }
 
