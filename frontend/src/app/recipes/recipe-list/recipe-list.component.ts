@@ -11,6 +11,7 @@ import { Utils } from "src/app/utils";
 import { LazyLoadEvent } from "primeng/api";
 import { DataView } from "primeng/dataview";
 import { UserService } from "src/app/shared/user.service";
+import { Subscription } from "rxjs";
 
 interface Filters {
   recipeName?: string;
@@ -32,11 +33,13 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   recipeTypes: TypeOption[];
   recipeOwners: TypeOption[];
   showFilters: boolean;
-  mobile = false
+  mobile = false;
+  loggedIn: boolean = false;
 
   private doFilter: Function;
   private firstLoad = true;
   private mediaQuery: MediaQueryList;
+  private subscriptions: Subscription[];
 
   onMediaMatch = (e: MediaQueryListEvent) => {
     this.mobile = e.matches;
@@ -79,17 +82,23 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       this.filters.recipeType = this.recipeTypes.filter((rt) =>
         rt.value == params.recipeType
       )[0];
-      this.filters.userId = this.recipeOwners.filter((rt) =>
-        rt.value == params.userId
-      )[0];
+      this.filters.userId =
+        this.recipeOwners.filter((rt) => rt.value == params.userId)[0];
     });
     this.doFilter = Utils.debounce((field: string, dt: DataView) => {
       this.onLazyLoad({ first: 0, rows: this.recipes.count });
     }, 500);
+
+    this.subscriptions = [
+      this.userService.$auth.subscribe(() => {
+        this.loggedIn = this.userService.isSignedIn();
+      }),
+    ];
   }
 
   ngOnDestroy() {
     this.mediaQuery.removeEventListener("change", this.onMediaMatch);
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   openRecipe(recipe?: Recipe) {
@@ -98,7 +107,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     if (!recipe) {
       route.push("0", "edit");
     } else if (recipe.recipeName) {
-      route.push(this.recipeService.cleanRecipeName(recipe.recipeName))
+      route.push(this.recipeService.cleanRecipeName(recipe.recipeName));
     }
 
     this.router.navigate(route, { relativeTo: this.route });
@@ -139,14 +148,10 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       filters.weightWatchers = this.filters.weightWatchers;
     }
 
-    if (this.filters.userId && this.filters.userId['value']) {
-      filters.userId = this.filters.userId['value'];
+    if (this.filters.userId && this.filters.userId["value"]) {
+      filters.userId = this.filters.userId["value"];
     }
 
     this.router.navigate(["./", filters], { relativeTo: this.route });
-  }
-
-  get loggedIn() {
-    return this.userService.isSignedIn();
   }
 }
