@@ -14,7 +14,7 @@ import {
 @Component({
   selector: "nr-page-action",
   templateUrl: "./page-action.component.html",
-  styleUrls: ["./page-action.component.css"],
+  styleUrls: ["./page-action.component.scss"],
 })
 export class PageActionComponent implements OnInit, OnDestroy {
   @Input()

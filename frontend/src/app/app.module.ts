@@ -14,6 +14,7 @@ import { OverlayPanelModule } from "primeng/overlaypanel";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { SidebarModule } from 'primeng/sidebar';
 import { PageActionModule } from "./page-action/page-action.module";
+import { TriStateCheckboxModule } from "primeng/tristatecheckbox";
 
 const initialize = (recipeService: RecipeService, userService: UserService) => {
   return () =>
@@ -39,6 +40,7 @@ const initialize = (recipeService: RecipeService, userService: UserService) => {
     ConfirmDialogModule,
     SidebarModule,
     PageActionModule,
+    TriStateCheckboxModule,
   ],
   providers: [
     RecipeService,

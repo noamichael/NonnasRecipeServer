@@ -7,7 +7,7 @@ import { UserService } from "src/app/shared/user.service";
 @Component({
   selector: "nr-recipe-display",
   templateUrl: "./recipe-display.component.html",
-  styleUrls: ["./recipe-display.component.css"],
+  styleUrls: ["./recipe-display.component.scss"],
 })
 export class RecipeDisplayComponent implements OnInit {
   recipe: Recipe;

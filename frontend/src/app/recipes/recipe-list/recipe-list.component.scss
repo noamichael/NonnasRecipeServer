@@ -45,7 +45,6 @@ p-tristatecheckbox {
 label {
     font-weight: bold;
     display: block;
-    color: white;
     margin-bottom: 0.5em;
 }
 
@@ -66,15 +65,6 @@ label {
 
     .table-filters > * {
         margin-bottom: 1em;
-    }
-
-    p-checkbox,
-    p-tristatecheckbox {
-        color: black;
-    }
-
-    label {
-        color: black;
     }
 
     .mobile-search-box {

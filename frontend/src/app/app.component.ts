@@ -15,16 +15,18 @@ import { PageActionService } from "./shared/page-action.service";
 @Component({
   selector: "nr-app",
   templateUrl: "./app.component.html",
-  styleUrls: ["./app.component.css"],
+  styleUrls: ["./app.component.scss"],
   providers: [ConfirmationService],
 })
 export class AppComponent implements OnInit {
   loading: boolean;
   loggedIn: boolean = false;
   user: User;
-  sidebarOpen = false
+  sidebarOpen = false;
   appName = "Nonna's";
   GOOGLE_CLIENT_ID = UserService.client_id;
+  darkMode: boolean = null;
+  styleLink: HTMLLinkElement
 
   constructor(
     private router: Router,
@@ -32,16 +34,17 @@ export class AppComponent implements OnInit {
     public keyboardService: KeyboardService,
     private confirmationService: ConfirmationService,
     private changeDetector: ChangeDetectorRef,
-    private pageActionService: PageActionService
+    private pageActionService: PageActionService,
   ) {}
 
   ngOnInit() {
+    this.styleLink = document.querySelector('#themeLink')
     this.userService.$auth.subscribe((user) => {
       this.user = user;
       this.sidebarOpen = false;
       if (user.name != "anonymous") {
         this.appName = `${user.name.split(" ")[0]}'s'`;
-        this.loggedIn = true; 
+        this.loggedIn = true;
       } else {
         this.appName = "Nonna's";
         this.loggedIn = false;
@@ -72,6 +75,16 @@ export class AppComponent implements OnInit {
       }
     });
     this.keyboardService.attach();
+
+    const darkMode = localStorage.getItem("dark-mode");
+
+    if (darkMode === "true") {
+      this.darkMode = true;
+    } else if (darkMode === "false") {
+      this.darkMode = false;
+    }
+
+    this.onDarkModeChange(true);
   }
 
   closeKeyboard() {
@@ -110,8 +123,30 @@ export class AppComponent implements OnInit {
     });
   }
 
+  onDarkModeChange(fromInit?: boolean) {
+    let darkMode = this.darkMode;
+
+    let setInStorage = true;
+    if (this.darkMode === null || this.darkMode === undefined) {
+      darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      !fromInit && localStorage.removeItem("dark-mode");
+      setInStorage = false;
+    }
+
+    if (darkMode) {
+      this.styleLink.href = '/assets/themes/mdc-dark-deeppurple/theme.css'
+      document.body.classList.add("dark");
+      document.body.classList.remove("light");
+      setInStorage && localStorage.setItem("dark-mode", "true");
+    } else {
+      this.styleLink.href = '/assets/themes/mdc-light-deeppurple/theme.css'
+      document.body.classList.add("light");
+      document.body.classList.remove("dark");
+      setInStorage && localStorage.setItem("dark-mode", "false");
+    }
+  }
+
   get pageActions() {
     return this.pageActionService.pageActions;
   }
-
 }

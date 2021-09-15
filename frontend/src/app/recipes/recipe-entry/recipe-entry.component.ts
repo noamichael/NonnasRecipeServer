@@ -25,7 +25,7 @@ import { UserService } from "src/app/shared/user.service";
 @Component({
   selector: "nr-recipe-entry",
   templateUrl: "./recipe-entry.component.html",
-  styleUrls: ["./recipe-entry.component.css"],
+  styleUrls: ["./recipe-entry.component.scss"],
   providers: [ConfirmationService],
 })
 export class RecipeEntryComponent implements OnInit {
