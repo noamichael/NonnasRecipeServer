@@ -8,7 +8,7 @@ import { RecipeTableService } from './recipe-table.service';
 @Component({
   selector: 'nr-recipes',
   templateUrl: './recipes.component.html',
-  styleUrls: ['./recipes.component.css'],
+  styleUrls: ['./recipes.component.scss'],
   providers: [RecipeTableService]
 })
 export class RecipesComponent implements OnInit {

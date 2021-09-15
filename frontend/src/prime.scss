@@ -1,0 +1,38 @@
+@mixin prime-all {
+
+    .p-progressbar .p-progressbar-value {
+        background: var(--nr-primary-blue, #007ad9);
+    }
+    
+    .p-card .p-card-title {
+        color: var(--nr-card-title, darkcyan);
+    }
+
+    .p-dataview .p-dataview-header {
+        background: var(--nr-filter-header, #333);
+        color: white;
+    }
+
+    .p-sidebar-bottom {
+        height: 30vh;
+    }
+
+    .recipe-card .p-card:hover {
+        cursor: pointer;
+        background: var(--nr-card-hover, #eaeaea);
+    }
+
+    .p-paginator {
+        justify-content: center;
+    }
+}
+
+@mixin prime-light {
+    
+}
+
+@mixin prime-dark {
+    --nr-card-hover: #333;
+    background: #333;
+    color: white;
+}
