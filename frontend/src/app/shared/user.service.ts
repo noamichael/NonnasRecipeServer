@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, NgZone } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { anonymous, User } from "../schema/user";
 import jwt_decode from "jwt-decode";
@@ -9,8 +9,8 @@ const client_id =
   "168337345714-natmvlg4lc80c2nfn8ld76ub9im586e4.apps.googleusercontent.com";
 
 export interface VerifyResponse {
-  ok: boolean,
-  user?: User
+  ok: boolean;
+  user?: User;
 }
 
 @Injectable({
@@ -25,6 +25,7 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
+    private ngZone: NgZone,
   ) {}
 
   bootstrap() {
@@ -32,12 +33,14 @@ export class UserService {
       client_id,
       callback: (response) => {
         console.log(response);
-        this.verify(response.credential).then((verifyRes) => {
-          if (verifyRes["ok"]) {
-            const user = jwt_decode(response.credential) as User;
-            user.id = verifyRes.user.id;
-            this.updateUser(user);
-          }
+        this.ngZone.run(() => {
+          this.verify(response.credential).then((verifyRes) => {
+            if (verifyRes["ok"]) {
+              const user = jwt_decode(response.credential) as User;
+              user.id = verifyRes.user.id;
+              this.updateUser(user);
+            }
+          });
         });
       },
     });
@@ -70,10 +73,12 @@ export class UserService {
   }
 
   promptForLogin() {
-    google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // TODO: do I need to know this?
-      }
+    this.ngZone.run(() => {
+      google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // TODO: do I need to know this?
+        }
+      });
     });
   }
 
@@ -87,12 +92,14 @@ export class UserService {
   destroyLoginButton() {
     const button = document.getElementById("googleLogin");
     if (button) {
-      document.getElementById("googleLogin").childNodes.forEach(n => n.remove());
+      document.getElementById("googleLogin").childNodes.forEach((n) =>
+        n.remove()
+      );
     }
   }
 
   isSignedIn() {
-    return this.user && this.user.name != 'anonymous';
+    return this.user && this.user.name != "anonymous";
   }
 
   private updateUser(user: User) {
