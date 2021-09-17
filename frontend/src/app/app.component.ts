@@ -26,7 +26,7 @@ export class AppComponent implements OnInit {
   appName = "Nonna's";
   GOOGLE_CLIENT_ID = UserService.client_id;
   darkMode: boolean = null;
-  styleLink: HTMLLinkElement
+  styleLink: HTMLLinkElement;
 
   constructor(
     private router: Router,
@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.styleLink = document.querySelector('#themeLink')
+    this.styleLink = document.querySelector("#themeLink");
     this.userService.$auth.subscribe((user) => {
       this.user = user;
       this.sidebarOpen = false;
@@ -67,6 +67,7 @@ export class AppComponent implements OnInit {
         case event instanceof NavigationCancel:
         case event instanceof NavigationError: {
           this.loading = false;
+          this.sidebarOpen = false;
           break;
         }
         default: {
@@ -134,12 +135,12 @@ export class AppComponent implements OnInit {
     }
 
     if (darkMode) {
-      this.styleLink.href = '/assets/themes/mdc-dark-deeppurple/theme.css'
+      this.styleLink.href = "/assets/themes/mdc-dark-deeppurple/theme.css";
       document.body.classList.add("dark");
       document.body.classList.remove("light");
       setInStorage && localStorage.setItem("dark-mode", "true");
     } else {
-      this.styleLink.href = '/assets/themes/mdc-light-deeppurple/theme.css'
+      this.styleLink.href = "/assets/themes/mdc-light-deeppurple/theme.css";
       document.body.classList.add("light");
       document.body.classList.remove("dark");
       setInStorage && localStorage.setItem("dark-mode", "false");
@@ -148,5 +149,9 @@ export class AppComponent implements OnInit {
 
   get pageActions() {
     return this.pageActionService.pageActions;
+  }
+
+  get isAdmin() {
+    return this.userService.isAdmin();
   }
 }

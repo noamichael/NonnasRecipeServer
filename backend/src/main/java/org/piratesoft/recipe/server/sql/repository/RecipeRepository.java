@@ -162,7 +162,7 @@ public class RecipeRepository {
 
     public RecipeResponse<List<RecipeUser>>   getRecipeOwners() {
         List<RecipeUser> users = sql.executeQuery(
-                "SELECT DISTINCT U.id, U.fullName, U.email FROM Recipe R INNER JOIN RecipeUser U ON U.id = R.userId",
+                "SELECT DISTINCT U.id, U.fullName, U.email, U.userRole FROM Recipe R INNER JOIN RecipeUser U ON U.id = R.userId",
                 Collections.emptyList(), (rs) -> {
                     RecipeUser user = UserRepository.resultSetToUser(rs);
                     // Blank email. We don't want an public API which returns emails

@@ -60,7 +60,7 @@ public final class ConnectionPool {
         // pool.
         // Additional connections will be established to meet this value unless the pool
         // is full.
-        config.setMinimumIdle(0);
+        config.setMinimumIdle(4);
         // [END cloud_sql_mysql_servlet_limit]
 
         // [START cloud_sql_mysql_servlet_timeout]

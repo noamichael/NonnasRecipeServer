@@ -40,6 +40,8 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   private firstLoad = true;
   private mediaQuery: MediaQueryList;
   private subscriptions: Subscription[];
+  private resetScroll = false;
+  private lastLoadEvent: LazyLoadEvent
 
   onMediaMatch = (e: MediaQueryListEvent) => {
     this.mobile = e.matches;
@@ -84,6 +86,14 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       )[0];
       this.filters.userId =
         this.recipeOwners.filter((rt) => rt.value == params.userId)[0];
+
+      if (this.resetScroll) {
+        this.resetScroll = false;
+        // Update reset the scroll bar on page change. I do this here
+        // instead of in the app.component because I don't want to
+        // reset scrolling when navigating backwards
+        document.scrollingElement.scrollTop = 0;
+      }
     });
     this.doFilter = Utils.debounce((field: string, dt: DataView) => {
       this.onLazyLoad({ first: 0, rows: this.recipes.count });
@@ -135,6 +145,12 @@ export class RecipeListComponent implements OnInit, OnDestroy {
       this.firstLoad = false;
       return;
     }
+
+    // Only reset the scroll if we've paginated
+    if (this.lastLoadEvent && $event.first != this.lastLoadEvent.first) {
+      this.resetScroll = true;
+    }
+
     const filters: Filters = {
       page: ($event.first / $event.rows) + 1,
     };
@@ -151,6 +167,8 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     if (this.filters.userId && this.filters.userId["value"]) {
       filters.userId = this.filters.userId["value"];
     }
+    
+    this.lastLoadEvent = $event;
 
     this.router.navigate(["./", filters], { relativeTo: this.route });
   }

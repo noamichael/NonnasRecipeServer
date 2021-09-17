@@ -1,0 +1,19 @@
+<p-table [value]="users" responsiveLayout="stack">
+    <ng-template pTemplate="header">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-user>
+        <tr>
+            <td>{{user.name}}</td>
+            <td>{{user.email}}</td>
+            <td>
+                <p-dropdown [options]="roles" [(ngModel)]="user.userRole" optionLabel="label" optionValue="value">
+                </p-dropdown>
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
