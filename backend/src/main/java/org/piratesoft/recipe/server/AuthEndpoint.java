@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import org.piratesoft.recipe.server.auth.AuthVerifier;
 import org.piratesoft.recipe.server.auth.VerifyRequest;
 import org.piratesoft.recipe.server.auth.VerifyResponse;
+import org.piratesoft.recipe.server.schema.RecipeResponse;
 import org.piratesoft.recipe.server.schema.RecipeUser;
 import org.piratesoft.recipe.server.sql.MySql;
 import org.piratesoft.recipe.server.sql.MySqlInstance;
@@ -47,7 +48,7 @@ public class AuthEndpoint {
                 // seen them before
                 int userId = repository.saveUser(user);
                 if (userId < 0) {
-                    res.status(500);
+                    res.status(401);
                     return "Error signing in.";
                 }
                 // Lookup user from database
@@ -73,10 +74,78 @@ public class AuthEndpoint {
 
             if (!user.isPresent()) {
                 res.status(404);
-                return "{\"error\": \"Not Found\"}";
+                return new RecipeResponse.RecipeError("404", "Not Found");
             }
 
             return user.get();
+        }, JSON);
+
+        service.get("/auth/users", (req, res) -> {
+            Optional<RecipeUser> user = AuthEndpoint.lookupUser(req, MySqlInstance.get());
+
+            if (!user.isPresent()) {
+                res.status(401);
+                return new RecipeResponse.RecipeError("401", "Unauthorized");
+            }
+
+            RecipeUser requestUser = user.get();
+
+            if (!requestUser.canReadUsers()) {
+                res.status(403);
+                return new RecipeResponse.RecipeError("403", "Forbidden");
+            }
+
+            UserRepository repository = new UserRepository(MySqlInstance.get());
+
+            return repository.getUsers();
+        }, JSON);
+
+        service.post("/auth/users", (req, res) -> {
+            Optional<RecipeUser> user = AuthEndpoint.lookupUser(req, MySqlInstance.get());
+
+            if (!user.isPresent()) {
+                res.status(401);
+                return new RecipeResponse.RecipeError("401", "Unauthorized");
+            }
+
+            RecipeUser requestUser = user.get();
+
+            if (!requestUser.canUpdateUsers()) {
+                res.status(403);
+                return new RecipeResponse.RecipeError("403", "Forbidden");
+            }
+
+            RecipeUser userToSave = gson.fromJson(req.body(), RecipeUser.class);
+
+            if (userToSave.id == requestUser.id) {
+                res.status(403);
+                return new RecipeResponse.RecipeError("403", "Forbidden - don't try to update yourself");
+            }
+
+            UserRepository repository = new UserRepository(MySqlInstance.get());
+
+            List<RecipeUser> userFromDbResult = repository.getUser(userToSave.id);
+
+            if (userFromDbResult.size() < 1) {
+                res.status(404);
+                return new RecipeResponse.RecipeError("404", "Not Found - User not found");
+            }
+
+            RecipeUser userFromDb = userFromDbResult.get(0);
+
+            // Only update their role for now... Not much else to change
+            userFromDb.userRole = userToSave.userRole;
+            userFromDb.userRole = userFromDb.normalizeRole();
+
+            if (!userFromDb.hasValidRole()) {
+                res.status(400);
+                return new RecipeResponse.RecipeError("400", "Bad Request - invalid role provided");
+            }
+
+            repository.saveUser(userFromDb);
+
+            return userFromDb;
+
         }, JSON);
 
     }

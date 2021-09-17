@@ -77,9 +77,15 @@ public class RecipeEndpoint {
                 res.status(401);
                 return unauthorized("You need to be signed in to save recipes");
             }
+            RecipeUser user = reqUser.get();
+
+            if (!user.canWrite()) {
+                res.status(401);
+                return unauthorized("You are currently not approved to save recipes");
+            }
+
             RecipeRepository repository = new RecipeRepository(sql);
 
-            RecipeUser user = reqUser.get();
 
             Recipe recipe = gson.fromJson(req.body(), Recipe.class);
 

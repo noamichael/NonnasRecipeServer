@@ -39,11 +39,16 @@
     <span class="username">{{user.name}}</span>
   </div>
   <div class="seperator"></div>
-  <button *ngIf="loggedIn" pButton class="p-button-danger" (click)="signOut()" label="Logout" icon="pi pi-sign-out">
-  </button>
+  <div class="controls">
+    <button *ngIf="isAdmin" pButton class="p-button-info" [routerLink]="['/admin']" label="Admin" icon="pi pi-globe">
+    </button>
+    <button *ngIf="loggedIn" pButton class="p-button-danger" (click)="signOut()" label="Logout" icon="pi pi-sign-out">
+    </button>
+  </div>
   <div id="googleLogin"></div>
   <div class="seperator"></div>
-  <p-triStateCheckbox [(ngModel)]="darkMode" label="Dark Mode" (ngModelChange)="onDarkModeChange()"></p-triStateCheckbox>
+  <p-triStateCheckbox [(ngModel)]="darkMode" label="Dark Mode" (ngModelChange)="onDarkModeChange()">
+  </p-triStateCheckbox>
   <div style="margin-top: .5em;" [ngSwitch]="darkMode">
     <div *ngSwitchCase="null">
       Using OS Default

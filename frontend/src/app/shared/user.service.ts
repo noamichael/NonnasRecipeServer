@@ -3,6 +3,7 @@ import { BehaviorSubject } from "rxjs";
 import { anonymous, User } from "../schema/user";
 import jwt_decode from "jwt-decode";
 import { HttpClient } from "@angular/common/http";
+import { RecipeResponse } from "../recipe.service";
 
 declare const google: any;
 const client_id =
@@ -38,6 +39,7 @@ export class UserService {
             if (verifyRes["ok"]) {
               const user = jwt_decode(response.credential) as User;
               user.id = verifyRes.user.id;
+              user.userRole = verifyRes.user.userRole;
               this.updateUser(user);
             }
           });
@@ -98,8 +100,22 @@ export class UserService {
     }
   }
 
+  getUsers(): Promise<RecipeResponse<User[]>> {
+    return this.http.get<RecipeResponse<User[]>>("/api/auth/users")
+      .toPromise();
+  }
+
+  saveUser(user: User): Promise<RecipeResponse<User[]>> {
+    return this.http.post<RecipeResponse<User[]>>("/api/auth/users", user)
+      .toPromise();
+  }
+
   isSignedIn() {
     return this.user && this.user.name != "anonymous";
+  }
+
+  isAdmin() {
+    return this.user && this.user.userRole === "admin";
   }
 
   private updateUser(user: User) {
