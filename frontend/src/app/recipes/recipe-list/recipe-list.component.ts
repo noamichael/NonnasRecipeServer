@@ -140,6 +140,11 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     this.doFilter(field, dt);
   }
 
+
+  get canWriteRecipes() {
+    return this.userService.canWriteRecipes();
+  }
+
   onLazyLoad($event: LazyLoadEvent) {
     if (this.firstLoad) {
       this.firstLoad = false;

@@ -80,7 +80,7 @@ public class RecipeEndpoint {
             RecipeUser user = reqUser.get();
 
             if (!user.canWrite()) {
-                res.status(401);
+                res.status(403);
                 return unauthorized("You are currently not approved to save recipes");
             }
 
@@ -137,12 +137,20 @@ public class RecipeEndpoint {
 
             Recipe previousRecipe = repository.getRecipe(recipeId).orElse(null);
 
+            if (!user.canWrite()) {
+                res.status(403);
+                return unauthorized("You are not authorized to delete recipes");
+            }
+
             if (previousRecipe != null) {
                 // If you don't own the recipe AND you aren't an admin, fail
                 if (previousRecipe.getUserId() != user.id && !user.isAdmin()) {
-                    res.status(401);
+                    res.status(403);
                     return unauthorized("You can only delete recipes that belong to you.");
                 }
+            } else {
+                res.status(404);
+                return new RecipeResponse.RecipeError("404", "Not found");
             }
 
             int id = repository.deleteRecipe(recipeId);

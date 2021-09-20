@@ -115,6 +115,7 @@ export class AppComponent implements OnInit {
   }
 
   signOut() {
+    this.sidebarOpen = false;
     this.confirmationService.confirm({
       key: "appConfirm",
       message: "Are you sure that you want to logout?",

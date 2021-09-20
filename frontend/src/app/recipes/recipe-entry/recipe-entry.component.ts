@@ -1,4 +1,10 @@
-import { Component, Injectable, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  Injectable,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import { CanActivate, CanDeactivate } from "@angular/router";
 import { NgForm } from "@angular/forms";
 import {
@@ -18,7 +24,7 @@ import {
   Router,
   RouterStateSnapshot,
 } from "@angular/router";
-import { of } from "rxjs";
+import { of, Subscription } from "rxjs";
 import { RecipeTableService } from "../recipe-table.service";
 import { UserService } from "src/app/shared/user.service";
 
@@ -28,9 +34,11 @@ import { UserService } from "src/app/shared/user.service";
   styleUrls: ["./recipe-entry.component.scss"],
   providers: [ConfirmationService],
 })
-export class RecipeEntryComponent implements OnInit {
+export class RecipeEntryComponent implements OnInit, OnDestroy {
   recipeTypes: TypeOption[] = [];
   recipeType: TypeOption;
+
+  subscriptions: Subscription[] = [];
 
   ingredientFocusIndex = -1;
   stepFocusIndex = -1;
@@ -51,29 +59,35 @@ export class RecipeEntryComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.route.data.subscribe((data) => {
-      this.recipe = data.recipe.data;
-      if (!this.recipe.ingredients.length) {
-        this.recipe.ingredients.push({});
-      }
-      if (!this.recipe.steps.length) {
-        this.recipe.steps.push({});
-      }
-      this.recipeTypes = this.recipeTableService.recipeTypes;
+    this.subscriptions = [
+      this.userService.$auth.subscribe(() => {
+        this.setOwnsRecipe();
+      }),
+      this.route.data.subscribe((data) => {
+        this.recipe = data.recipe.data;
+        if (!this.recipe.ingredients.length) {
+          this.recipe.ingredients.push({});
+        }
+        if (!this.recipe.steps.length) {
+          this.recipe.steps.push({});
+        }
+        this.recipeTypes = this.recipeTableService.recipeTypes;
 
-      if (this.recipe.recipeType) {
-        this.recipeType = this.recipeTypes.filter((t) =>
-          t.value === this.recipe.recipeType
-        )[0];
-      } else {
-        this.recipeType = null;
-      }
+        if (this.recipe.recipeType) {
+          this.recipeType = this.recipeTypes.filter((t) =>
+            t.value === this.recipe.recipeType
+          )[0];
+        } else {
+          this.recipeType = null;
+        }
 
-      this.ownsRecipe = this.recipeService.ownsRecipe(
-        this.userService.$auth.value,
-        this.recipe,
-      );
-    });
+        this.setOwnsRecipe();
+      }),
+    ];
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   back() {
@@ -226,6 +240,14 @@ export class RecipeEntryComponent implements OnInit {
       });
     });
   }
+
+  private setOwnsRecipe() {
+    if (!this.recipe)return;
+    this.ownsRecipe = this.recipeService.ownsRecipe(
+      this.userService.$auth.value,
+      this.recipe,
+    );
+  }
 }
 
 @Injectable()
@@ -265,12 +287,13 @@ export class CanDeactivateEntry implements CanDeactivate<RecipeEntryComponent> {
 export class CanActivateEntry implements CanActivate {
   constructor(
     private userService: UserService,
+    private recipeSerivce: RecipeService,
     private router: Router,
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot) {
-    if (!this.userService.isSignedIn()) {
-      this.router.navigate(["recipes", route.params.id]);
+    if (!this.userService.isSignedIn() || !this.userService.canWriteRecipes()) {
+      this.router.navigate(["recipes", route.params.id, "view"]);
       return false;
     }
     return true;

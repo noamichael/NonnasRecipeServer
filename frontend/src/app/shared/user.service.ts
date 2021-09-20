@@ -111,7 +111,11 @@ export class UserService {
   }
 
   isSignedIn() {
-    return this.user && this.user.name != "anonymous";
+    return this.user && this.user.name !== "anonymous";
+  }
+
+  canWriteRecipes() {
+    return this.user && this.user.userRole !== 'readOnly';
   }
 
   isAdmin() {
