@@ -18,25 +18,34 @@ public class UserRepository {
         this.sql = sql;
     }
 
-    public int saveUser(RecipeUser user) {
+    public int saveUser(RecipeUser user, boolean insertOnly) {
 
         List<RecipeUser> userByEmail = getUser(user.email);
-
-        if (userByEmail.size() > 0) {
-            return userByEmail.get(0).id;
-        }
-
-        // Make sure there are no spaces
-        user.userRole = user.normalizeRole();
-
-        if (!user.hasValidRole()) {
-            return -1;
-        }
-
+        
         return sql.runInTrx(() -> {
-            List<Object> insertAndUpdateArgs = new ArrayList<>();
-            insertAndUpdateArgs.addAll(Arrays.asList(user.email.trim().toLowerCase(), user.name, user.userRole));
-            return sql.executeInsert("INSERT INTO RecipeUser (email, fullName, userRole) VALUES(?,?,?)", insertAndUpdateArgs);
+
+            String statement = "INSERT INTO RecipeUser (email, fullName, userRole) VALUES(?,?,?)";
+            List<Object> queryParams = Arrays.asList(user.email.trim().toLowerCase(), user.name, user.userRole);
+            
+            // Make sure there are no spaces
+            user.userRole = user.normalizeRole();
+
+            if (!user.hasValidRole()) {
+                System.out.println("Invalid role detected " + user.userRole);
+                return -1;
+            }
+
+
+            if (userByEmail.size() > 0) {
+                if (insertOnly) {
+                    return userByEmail.get(0).id;
+                }
+                statement = "UPDATE RecipeUser SET userRole = ? WHERE id = ?";
+                queryParams = Arrays.asList(user.userRole, user.id);
+                return sql.executeUpdate(statement, queryParams);
+            }
+
+            return sql.executeInsert(statement, queryParams);
         }, -1);
     }
 
@@ -51,7 +60,8 @@ public class UserRepository {
     }
 
     public RecipeResponse<List<RecipeUser>> getUsers() {
-        List<RecipeUser> users = sql.executeQuery("SELECT * FROM RecipeUser", Collections.emptyList(), UserRepository::resultSetToUser);
+        List<RecipeUser> users = sql.executeQuery("SELECT * FROM RecipeUser", Collections.emptyList(),
+                UserRepository::resultSetToUser);
         return new RecipeResponse<List<RecipeUser>>(users);
     }
 

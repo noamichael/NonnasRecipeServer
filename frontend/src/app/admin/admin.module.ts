@@ -2,8 +2,8 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule, Routes } from "@angular/router";
 import { TableModule } from "primeng/table";
-
-import {DropdownModule} from 'primeng/dropdown';
+import { ToastModule } from "primeng/toast";
+import { DropdownModule } from "primeng/dropdown";
 
 import {
   AdminComponent,
@@ -11,6 +11,8 @@ import {
   UserListResolver,
 } from "./admin.component";
 import { FormsModule } from "@angular/forms";
+import { ButtonModule } from "primeng/button";
+import { PageActionModule } from "../page-action/page-action.module";
 
 const routes: Routes = [
   {
@@ -30,7 +32,10 @@ const routes: Routes = [
     TableModule,
     DropdownModule,
     FormsModule,
+    ButtonModule,
+    ToastModule,
     RouterModule.forChild(routes),
+    PageActionModule,
   ],
 })
 export class AdminModule {}

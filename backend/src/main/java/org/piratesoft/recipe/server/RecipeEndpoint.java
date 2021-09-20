@@ -86,22 +86,31 @@ public class RecipeEndpoint {
 
             RecipeRepository repository = new RecipeRepository(sql);
 
-
             Recipe recipe = gson.fromJson(req.body(), Recipe.class);
 
             Integer id = recipe.getId();
+            boolean shouldSetId = true;
 
             if (id != null) {
-                Optional<Recipe> oldRecipe = repository.getRecipe(id);
+                Recipe previousRecipe = repository.getRecipe(id).orElse(null);
 
-                if (oldRecipe.isPresent() && oldRecipe.get().getUserId() != user.id) {
-                    res.status(401);
-                    return unauthorized("You can only save recipes that belong to you.");
+                if (previousRecipe != null) {
+                    // If you don't own the recipe AND you aren't an admin, fail
+                    if (previousRecipe.getUserId() != user.id && !user.isAdmin()) {
+                        res.status(401);
+                        return unauthorized("You can only save recipes that belong to you.");
+                    }
+
+                    // no need to set id since there is a previous record
+                    shouldSetId = false;
+                    recipe.setUserId(previousRecipe.getId());
                 }
             }
 
             // Mark this recipe belongs to the current user
-            recipe.setUserId(user.id);
+            if (shouldSetId) {
+                recipe.setUserId(user.id);
+            }
 
             id = repository.saveRecipe(recipe);
             if (id == -1) {
@@ -126,11 +135,14 @@ public class RecipeEndpoint {
             RecipeUser user = reqUser.get();
             int recipeId = Integer.valueOf(req.params(":id"));
 
-            Optional<Recipe> oldRecipe = repository.getRecipe(recipeId);
+            Recipe previousRecipe = repository.getRecipe(recipeId).orElse(null);
 
-            if (oldRecipe.isPresent() && oldRecipe.get().getUserId() != user.id) {
-                res.status(401);
-                return unauthorized("You can only delete recipes that belong to you.");
+            if (previousRecipe != null) {
+                // If you don't own the recipe AND you aren't an admin, fail
+                if (previousRecipe.getUserId() != user.id && !user.isAdmin()) {
+                    res.status(401);
+                    return unauthorized("You can only delete recipes that belong to you.");
+                }
             }
 
             int id = repository.deleteRecipe(recipeId);

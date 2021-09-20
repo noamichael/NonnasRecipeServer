@@ -46,7 +46,7 @@ public class AuthEndpoint {
                 UserRepository repository = new UserRepository(MySqlInstance.get());
                 // Make an entry in the database for this user if we haven't
                 // seen them before
-                int userId = repository.saveUser(user);
+                int userId = repository.saveUser(user, true);
                 if (userId < 0) {
                     res.status(401);
                     return "Error signing in.";
@@ -142,7 +142,11 @@ public class AuthEndpoint {
                 return new RecipeResponse.RecipeError("400", "Bad Request - invalid role provided");
             }
 
-            repository.saveUser(userFromDb);
+            int result = repository.saveUser(userFromDb, false);
+
+            if (result < 0) {
+                System.out.println("Could not save user " + userFromDb.name);
+            }
 
             return userFromDb;
 

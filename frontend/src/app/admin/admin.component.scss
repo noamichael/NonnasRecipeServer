@@ -2,3 +2,13 @@
     display: block;
     padding: 1em;
 }
+
+.table-caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .text {
+        font-weight: bold;
+    }
+}
