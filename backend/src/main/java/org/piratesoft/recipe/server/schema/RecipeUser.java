@@ -25,6 +25,10 @@ public class RecipeUser {
     }
 
     public boolean canReadUsers() {
+        return isAdmin();
+    }
+
+    public boolean isAdmin() {
         return StringUtil.equals(ADMIN_ROLE, normalizeRole());
     }
 

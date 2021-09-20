@@ -115,6 +115,7 @@ public class MySql {
                 con.rollback();
             } catch (SQLException rollbackException) {
                 LOGGER.log(Level.SEVERE, null, e);
+                return defaultValue;
             }
         } finally {
             try {

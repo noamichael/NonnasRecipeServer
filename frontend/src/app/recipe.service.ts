@@ -65,7 +65,7 @@ export class RecipeService {
   }
 
   ownsRecipe(user: User, recipe: Recipe) {
-    return !recipe.id || (recipe.userId === user.id);
+    return !recipe.id || (recipe.userId === user.id) || user.userRole == 'admin';
   }
 
   cleanRecipeName(recipeName: string) {
