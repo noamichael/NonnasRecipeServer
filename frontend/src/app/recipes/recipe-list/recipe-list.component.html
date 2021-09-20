@@ -1,4 +1,4 @@
-<nr-page-action *ngIf="loggedIn" label="Add" icon="pi pi-plus" desktop="topbar" mobile="topbar" (click)="openRecipe()"
+<nr-page-action *ngIf="loggedIn && canWriteRecipes" label="Add" icon="pi pi-plus" desktop="topbar" mobile="topbar" (click)="openRecipe()"
   color="success">
 </nr-page-action>
 <nr-page-action label="Clear Filters" icon="pi pi-times" desktop="topbar" mobile="hidden" (click)="clearFilters(dv)"
