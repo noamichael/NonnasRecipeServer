@@ -13,6 +13,7 @@ public class Recipe {
     }
     
     private Integer id;
+    private Integer userId;
     private RecipeType recipeType;
     private String recipeName;
     private String cookTime;
@@ -21,6 +22,8 @@ public class Recipe {
     private List<Ingredient> ingredients;
     private Boolean weightWatchers;
     private Integer points;
+
+    private String userFullName;
 
     /**
      * @return the id
@@ -146,5 +149,29 @@ public class Recipe {
      */
     public void setPoints(Integer points) {
         this.points = points;
+    }
+
+    /**
+     * 
+     * @return The the user id
+     */
+    public Integer getUserId() {
+        return userId;
+    }
+
+    /**
+     * 
+     * @param userId The user id to set 
+     */
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
     }
 }

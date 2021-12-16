@@ -1,71 +1,116 @@
-import { Component, OnInit, Injectable, ViewChild } from '@angular/core';
-import { CanDeactivate, CanActivate } from '@angular/router';
-import { NgForm } from '@angular/forms';
-import { RecipeService, RecipeResponse, TypeOption } from '../../recipe.service';
-import { ConfirmationService } from 'primeng/api';
-import { Recipe } from '../../schema/recipe';
-import { Ingredient } from '../../schema/ingredient';
-import { RecipeStep } from '../../schema/recipe-step';
-import { Utils } from '../../utils';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
-import { RecipeTableService } from '../recipe-table.service';
+import {
+  Component,
+  Injectable,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
+import { CanActivate, CanDeactivate } from "@angular/router";
+import { NgForm } from "@angular/forms";
+import {
+  RecipeResponse,
+  RecipeService,
+  TypeOption,
+} from "../../recipe.service";
+import { ConfirmationService } from "primeng/api";
+import { Recipe } from "../../schema/recipe";
+import { Ingredient } from "../../schema/ingredient";
+import { RecipeStep } from "../../schema/recipe-step";
+import { Utils } from "../../utils";
+import {
+  ActivatedRoute,
+  ActivatedRouteSnapshot,
+  Resolve,
+  Router,
+  RouterStateSnapshot,
+} from "@angular/router";
+import { of, Subscription } from "rxjs";
+import { RecipeTableService } from "../recipe-table.service";
+import { UserService } from "src/app/shared/user.service";
 
 @Component({
-  selector: 'nr-recipe-entry',
-  templateUrl: './recipe-entry.component.html',
-  styleUrls: ['./recipe-entry.component.css'],
-  providers: [ConfirmationService]
+  selector: "nr-recipe-entry",
+  templateUrl: "./recipe-entry.component.html",
+  styleUrls: ["./recipe-entry.component.scss"],
+  providers: [ConfirmationService],
 })
-export class RecipeEntryComponent implements OnInit {
+export class RecipeEntryComponent implements OnInit, OnDestroy {
+  recipeTypes: TypeOption[] = [];
+  recipeType: TypeOption;
 
-  recipeTypes: TypeOption[] = []
-  recipeType: TypeOption
+  subscriptions: Subscription[] = [];
 
   ingredientFocusIndex = -1;
   stepFocusIndex = -1;
 
-  recipe: Recipe
+  recipe: Recipe;
+  ownsRecipe: boolean;
 
   @ViewChild(NgForm, { static: true })
-  form: NgForm
+  form: NgForm;
 
   constructor(
     private recipeService: RecipeService,
+    private userService: UserService,
     private confirmationService: ConfirmationService,
     private recipeTableService: RecipeTableService,
     private route: ActivatedRoute,
-    private router: Router
-  ) { }
+    private router: Router,
+  ) {}
 
   ngOnInit() {
-    this.route.data.subscribe(data => {
-      this.recipe = data.recipe.data;
-      if (!this.recipe.ingredients.length) {
-        this.recipe.ingredients.push({});
-      }
-      if (!this.recipe.steps.length) {
-        this.recipe.steps.push({});
-      }
-      this.recipeTypes = this.recipeTableService.recipeTypes;
+    this.subscriptions = [
+      this.userService.$auth.subscribe(() => {
+        this.setOwnsRecipe();
+      }),
+      this.route.data.subscribe((data) => {
+        this.recipe = data.recipe.data;
+        if (!this.recipe.ingredients.length) {
+          this.recipe.ingredients.push({});
+        }
+        if (!this.recipe.steps.length) {
+          this.recipe.steps.push({});
+        }
+        this.recipeTypes = this.recipeTableService.recipeTypes;
 
-      if (this.recipe.recipeType) {
-        this.recipeType = this.recipeTypes.filter(t => t.value === this.recipe.recipeType)[0];
-      } else {
-        this.recipeType = null;
-      }
-    });
+        if (this.recipe.recipeType) {
+          this.recipeType = this.recipeTypes.filter((t) =>
+            t.value === this.recipe.recipeType
+          )[0];
+        } else {
+          this.recipeType = null;
+        }
+
+        this.setOwnsRecipe();
+      }),
+    ];
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   back() {
     if (this.recipe.id) {
-      this.router.navigate(['../'], { relativeTo: this.route });
+      this.goToDisplayScreen();
     } else {
-      this.router.navigate(['../../'], { relativeTo: this.route });
+      this.goToListScreen();
     }
   }
 
+  goToDisplayScreen() {
+    this.router.navigate(["../"], { relativeTo: this.route });
+  }
+
+  goToListScreen() {
+    this.router.navigate(["../../../"], { relativeTo: this.route });
+  }
+
   saveRecipe() {
+    if (!this.ownsRecipe) {
+      return;
+    }
+
     const recipeForm: Recipe = {
       id: this.recipe.id,
       recipeName: this.recipe.recipeName,
@@ -74,42 +119,52 @@ export class RecipeEntryComponent implements OnInit {
       servingSize: this.recipe.servingSize,
       weightWatchers: this.recipe.weightWatchers,
       points: this.recipe.points,
-      steps: this.recipe.steps.slice().filter(s => !!s.stepDescription),
-      ingredients: this.recipe.ingredients.slice().filter(i => !!i.ingredientDescription)
+      steps: this.recipe.steps.slice().filter((s) => !!s.stepDescription),
+      ingredients: this.recipe.ingredients.slice().filter((i) =>
+        !!i.ingredientDescription
+      ),
     };
 
-    this.recipeService.saveRecipe(recipeForm).subscribe(saved => {
-      recipeForm.id = saved.data.id;
+    this.recipeService.saveRecipe(recipeForm).subscribe((saved) => {
       this.form.form.markAsPristine();
-      this.back();
+      this.router.navigate([
+        "/",
+        "recipes",
+        saved.data.id,
+        this.recipeService.cleanRecipeName(recipeForm.recipeName),
+      ]);
     });
   }
 
   deleteRecipe() {
     const recipe = this.recipe;
     this.confirmationService.confirm({
-      message: `Are you sure you want to delete the recipe ${recipe.recipeName || ''}, Mom?`,
+      message:
+        `Are you sure you want to delete the recipe ${recipe.recipeName ||
+          ""}?`,
       accept: () => {
         if (recipe.id) {
-          this.recipeService.deleteRecipe(recipe).subscribe(r => {
-            this.back();
+          this.recipeService.deleteRecipe(recipe).subscribe((r) => {
+            this.goToListScreen();
           });
         } else {
-          this.back();
+          this.goToListScreen();
         }
-      }
+      },
     });
   }
 
   resetRecipe(form: NgForm) {
     this.confirmationService.confirm({
-      message: `Are you sure you want to reset the form, Mom?`,
+      message: `Are you sure you want to reset the form?`,
       accept: () => {
         this.recipe = { ingredients: [{}], steps: [{}] };
         this.recipeType = null;
-        this.router.navigate(['../../', 'new', 'edit'], { relativeTo: this.route });
+        this.router.navigate(["../../../", "new", "0", "edit"], {
+          relativeTo: this.route,
+        });
         form.form.markAsPristine();
-      }
+      },
     });
   }
 
@@ -117,7 +172,9 @@ export class RecipeEntryComponent implements OnInit {
     setTimeout(() => {
       const newIndex = index + 1;
       this.recipe.ingredients = this.recipe.ingredients.slice();
-      this.recipe.ingredients.splice(newIndex, 0, { ingredientDescription: '' });
+      this.recipe.ingredients.splice(newIndex, 0, {
+        ingredientDescription: "",
+      });
       this.ingredientFocusIndex = newIndex;
     });
   }
@@ -127,7 +184,10 @@ export class RecipeEntryComponent implements OnInit {
   }
 
   removeIngredient(ingredient: Ingredient) {
-    this.recipe.ingredients.splice(this.recipe.ingredients.indexOf(ingredient), 1);
+    this.recipe.ingredients.splice(
+      this.recipe.ingredients.indexOf(ingredient),
+      1,
+    );
   }
 
   addStep(index: number) {
@@ -173,33 +233,36 @@ export class RecipeEntryComponent implements OnInit {
     }
     return new Promise<boolean>((resolve, reject) => {
       this.confirmationService.confirm({
-        message: `You have unsaved changed. Are you sure you want to leave, Mom?`,
+        message:
+          `You have unsaved changed. Are you sure you want to leave, Mom?`,
         accept: () => resolve(true),
-        reject: () => resolve(false)
+        reject: () => resolve(false),
       });
     });
   }
 
-  get gateway() {
-    return this.recipeService.gateway;
+  private setOwnsRecipe() {
+    if (!this.recipe)return;
+    this.ownsRecipe = this.recipeService.ownsRecipe(
+      this.userService.$auth.value,
+      this.recipe,
+    );
   }
-
 }
 
 @Injectable()
 export class RecipeResolver implements Resolve<RecipeResponse<Recipe>> {
-
   constructor(
-    private recipeService: RecipeService
-  ) { }
+    private recipeService: RecipeService,
+  ) {}
 
   resolve(
     route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
+    state: RouterStateSnapshot,
   ) {
-    if (route.params.id === 'new') {
+    if (route.params.id === "new") {
       return of({
-        data: { ingredients: [{}], steps: [{}] }
+        data: { ingredients: [{}], steps: [{}] },
       });
     }
     return this.recipeService.getRecipe(route.params.id);
@@ -208,14 +271,13 @@ export class RecipeResolver implements Resolve<RecipeResponse<Recipe>> {
 
 @Injectable()
 export class CanDeactivateEntry implements CanDeactivate<RecipeEntryComponent> {
-
-  constructor() { }
+  constructor() {}
 
   canDeactivate(
     component: RecipeEntryComponent,
     currentRoute: ActivatedRouteSnapshot,
     currentState: RouterStateSnapshot,
-    nextState: RouterStateSnapshot
+    nextState: RouterStateSnapshot,
   ): Promise<boolean> {
     return component.canDeactivate();
   }
@@ -223,16 +285,17 @@ export class CanDeactivateEntry implements CanDeactivate<RecipeEntryComponent> {
 
 @Injectable()
 export class CanActivateEntry implements CanActivate {
-
   constructor(
-    private recipeService: RecipeService,
-    private router: Router
-  ) { }
+    private userService: UserService,
+    private recipeSerivce: RecipeService,
+    private router: Router,
+  ) {}
 
   canActivate(route: ActivatedRouteSnapshot) {
-    if (this.recipeService.gateway) {
-      this.router.navigate(['recipes', route.params.id]);
+    if (!this.userService.isSignedIn() || !this.userService.canWriteRecipes()) {
+      this.router.navigate(["recipes", route.params.id, "view"]);
+      return false;
     }
-    return !this.recipeService.gateway;
+    return true;
   }
 }

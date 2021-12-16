@@ -1,0 +1,16 @@
+runtime: java11 # or another supported version
+
+instance_class: F1
+
+env_variables:
+  
+  GOOGLE_CLIENT_ID: "168337345714-natmvlg4lc80c2nfn8ld76ub9im586e4.apps.googleusercontent.com"
+  MYSQL_USER: root
+  MYSQL_PASSWORD: JPA7BhJGMDcJOn9G
+
+handlers:
+
+- url: /.*
+  secure: always
+  redirect_http_response_code: 301
+  script: auto

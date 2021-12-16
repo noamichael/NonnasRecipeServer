@@ -1,0 +1,3 @@
+dispatch:
+  - url: recipes.michaelkucinski.com/*
+    service: frontend

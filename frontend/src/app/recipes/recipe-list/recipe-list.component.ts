@@ -1,73 +1,125 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { RecipeResponse, TypeOption, RecipeService } from '../../recipe.service';
-import { Recipe } from '../../schema/recipe';
-import { RecipeTableService } from '../recipe-table.service';
-import { Utils } from 'src/app/utils';
-import { LazyLoadEvent } from 'primeng/api';
-import { DataView } from 'primeng/dataview';
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import {
+  RecipeResponse,
+  RecipeService,
+  TypeOption,
+} from "../../recipe.service";
+import { Recipe } from "../../schema/recipe";
+import { RecipeTableService } from "../recipe-table.service";
+import { Utils } from "src/app/utils";
+import { LazyLoadEvent } from "primeng/api";
+import { DataView } from "primeng/dataview";
+import { UserService } from "src/app/shared/user.service";
+import { Subscription } from "rxjs";
 
 interface Filters {
-  recipeName?: string,
-  recipeType?: TypeOption | string,
-  weightWatchers?: boolean
-  page?: number
+  recipeName?: string;
+  recipeType?: TypeOption | string;
+  weightWatchers?: boolean;
+  page?: number;
+  userId?: TypeOption | string;
 }
+
 @Component({
-  selector: 'nr-recipe-list',
-  templateUrl: './recipe-list.component.html',
-  styleUrls: ['./recipe-list.component.css']
+  selector: "nr-recipe-list",
+  templateUrl: "./recipe-list.component.html",
+  styleUrls: ["./recipe-list.component.scss"],
 })
 export class RecipeListComponent implements OnInit, OnDestroy {
-  recipes: RecipeResponse<Recipe[]>
+  recipes: RecipeResponse<Recipe[]>;
 
-  filters: Filters = {}
-  recipeTypes: TypeOption[]
+  filters: Filters = {};
+  recipeTypes: TypeOption[];
+  recipeOwners: TypeOption[];
+  showFilters: boolean;
+  mobile = false;
+  loggedIn: boolean = false;
 
-  private doFilter: Function
-  private firstLoad = true
+  private doFilter: Function;
+  private firstLoad = true;
+  private mediaQuery: MediaQueryList;
+  private subscriptions: Subscription[];
+  private resetScroll = false;
+  private lastLoadEvent: LazyLoadEvent
+
+  onMediaMatch = (e: MediaQueryListEvent) => {
+    this.mobile = e.matches;
+    if (!e.matches) {
+      this.showFilters = false;
+    }
+  };
 
   constructor(
     private recipeTableService: RecipeTableService,
-    private recipeService: RecipeService,
     private route: ActivatedRoute,
-    private router: Router
-  ) { }
+    private router: Router,
+    private userService: UserService,
+    private recipeService: RecipeService,
+  ) {}
 
   ngOnInit() {
-    this.route.data.subscribe(data => {
+    this.mediaQuery = window.matchMedia("(max-width: 750px)");
+    this.mobile = this.mediaQuery.matches;
+
+    this.mediaQuery.addEventListener("change", this.onMediaMatch);
+
+    this.route.data.subscribe((data) => {
       this.recipes = data.recipes;
-    })
+    });
     this.recipeTypes = this.recipeTableService.recipeTypes;
-    this.route.params.subscribe(params => {
+    this.recipeOwners = this.recipeTableService.recipeOwners;
+    this.route.params.subscribe((params) => {
       this.filters.recipeName = params.recipeName;
-      switch ('' + params.weightWatchers) {
-        case 'true':
+      switch ("" + params.weightWatchers) {
+        case "true":
           this.filters.weightWatchers = true;
           break;
-        case 'false':
+        case "false":
           this.filters.weightWatchers = false;
           break;
         default:
           this.filters.weightWatchers = null;
       }
-      this.filters.recipeType = this.recipeTypes.filter(rt => rt.value == params.recipeType)[0];
+      this.filters.recipeType = this.recipeTypes.filter((rt) =>
+        rt.value == params.recipeType
+      )[0];
+      this.filters.userId =
+        this.recipeOwners.filter((rt) => rt.value == params.userId)[0];
+
+      if (this.resetScroll) {
+        this.resetScroll = false;
+        // Update reset the scroll bar on page change. I do this here
+        // instead of in the app.component because I don't want to
+        // reset scrolling when navigating backwards
+        document.scrollingElement.scrollTop = 0;
+      }
     });
     this.doFilter = Utils.debounce((field: string, dt: DataView) => {
       this.onLazyLoad({ first: 0, rows: this.recipes.count });
     }, 500);
+
+    this.subscriptions = [
+      this.userService.$auth.subscribe(() => {
+        this.loggedIn = this.userService.isSignedIn();
+      }),
+    ];
   }
 
   ngOnDestroy() {
-
+    this.mediaQuery.removeEventListener("change", this.onMediaMatch);
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   openRecipe(recipe?: Recipe) {
-    const id = recipe ? recipe.id : 'new';
-    const route = ['./', id];
+    const id = recipe ? recipe.id : "new";
+    const route = ["./", id];
     if (!recipe) {
-      route.push('edit');
+      route.push("0", "edit");
+    } else if (recipe.recipeName) {
+      route.push(this.recipeService.cleanRecipeName(recipe.recipeName));
     }
+
     this.router.navigate(route, { relativeTo: this.route });
   }
 
@@ -78,6 +130,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   clearFilters(table: DataView) {
     this.filters.recipeType = null;
     this.filters.recipeName = null;
+    this.filters.userId = null;
     this.filters.weightWatchers = null;
     this.filters.page = 1;
     this.onLazyLoad({ first: 0, rows: this.recipes.count });
@@ -87,30 +140,41 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     this.doFilter(field, dt);
   }
 
+
+  get canWriteRecipes() {
+    return this.userService.canWriteRecipes();
+  }
+
   onLazyLoad($event: LazyLoadEvent) {
     if (this.firstLoad) {
       this.firstLoad = false;
       return;
     }
+
+    // Only reset the scroll if we've paginated
+    if (this.lastLoadEvent && $event.first != this.lastLoadEvent.first) {
+      this.resetScroll = true;
+    }
+
     const filters: Filters = {
-      page: ($event.first / $event.rows) + 1
+      page: ($event.first / $event.rows) + 1,
     };
     if (this.filters.recipeName) {
       filters.recipeName = this.filters.recipeName;
     }
-    if (this.filters.recipeType && this.filters.recipeType['value']) {
-      filters.recipeType = this.filters.recipeType['value'];
+    if (this.filters.recipeType && this.filters.recipeType["value"]) {
+      filters.recipeType = this.filters.recipeType["value"];
     }
-    if (this.filters.weightWatchers != null) {
+    if (this.filters.weightWatchers) {
       filters.weightWatchers = this.filters.weightWatchers;
     }
 
-    this.router.navigate(['./', filters], { relativeTo: this.route });
+    if (this.filters.userId && this.filters.userId["value"]) {
+      filters.userId = this.filters.userId["value"];
+    }
+    
+    this.lastLoadEvent = $event;
+
+    this.router.navigate(["./", filters], { relativeTo: this.route });
   }
-
-  get gateway() {
-    return this.recipeService.gateway;
-  }
-
-
 }

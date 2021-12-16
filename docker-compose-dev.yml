@@ -1,31 +1,28 @@
 version: '3'
 services:
-  frontend:
-    build: ./frontend
-    ports:
-    - "8080:8080"
-    environment:
-      PUBLIC_API: backend:6789
-      PRIVATE_API: backend:7890
-  gateway:
-    build: ./gateway
-    ports:
-      - "8282:8282"
-    environment:
-      FRONTEND_HOST: frontend:8080
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #   - "8080:8080"
+  #   environment:
+  #     PUBLIC_API: backend:6789
+  #     PRIVATE_API: backend:7890
   backend:
     build: ./backend
     ports:
-      - "6789:6789"
-      - "7890:7890"
+      - "6789:8080"
     environment:
-      DATABASE_HOST: database
+      JDBC_CONNECTION_STRING: jdbc:mysql://database:3306/NonnasRecipes
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      USER_IMPERSONATION: ${USER_IMPERSONATION}
   database:
     build: ./database
     environment:
-      MYSQL_ROOT_PASSWORD: .HTDoaahmou333.
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: mysql_user
-      MYSQL_PASSWORD: .HTDoaahmou333.
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: NonnasRecipes
     volumes:
     - mysql-data:/var/lib/mysql

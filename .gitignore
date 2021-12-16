@@ -43,3 +43,8 @@ typings
 # System Files
 .DS_Store
 Thumbs.db
+
+# Ignore local docker secrets
+.env
+
+secrets
