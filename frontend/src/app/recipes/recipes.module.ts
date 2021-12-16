@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecipesComponent, RecipesResolver, RecipeTypesResolver } from './recipes.component';
+import { RecipesComponent, RecipesOwnersResolver, RecipesResolver, RecipeTypesResolver } from './recipes.component';
 import { RouterModule } from '@angular/router';
 import { SharedModule } from '../shared/shared.module';
 
@@ -15,7 +15,8 @@ import { SharedModule } from '../shared/shared.module';
         path: '',
         component: RecipesComponent,
         resolve: {
-          recipeTypes: RecipeTypesResolver
+          recipeTypes: RecipeTypesResolver,
+          recipeOwners: RecipesOwnersResolver
         },
         children: [
           {

@@ -1,10 +1,11 @@
-<div class="page-actions">
-    <button pButton type="button" label="Back" icon="pi pi-arrow-left" (click)="back()"></button>
-    <button *ngIf="!gateway" pButton type="button" label="Edit" icon="pi pi-pencil" class="p-button-info edit" (click)="edit()"></button>
-  </div>
+<nr-page-action label="Back" icon="pi pi-arrow-left" (click)="back()"></nr-page-action>
+<nr-page-action *ngIf="loggedIn && ownsRecipe" label="Edit" icon="pi pi-pencil" color="info" (click)="edit()"></nr-page-action>
 <p-card>
   <div class="recipe">
     <h2>{{recipe.recipeName}}</h2>
+    <div class="author">
+      By <b>{{recipe.userFullName}}</b>
+    </div>
     <small>
       {{recipe.recipeType}}
       <span [hidden]="!recipe.servingSize">- Serves {{recipe.servingSize}}</span>

@@ -6,6 +6,7 @@
     align-items: center;
 }
 
+p-checkbox,
 p-tristatecheckbox {
     color: white;
 }
@@ -37,8 +38,38 @@ p-tristatecheckbox {
     color: teal;
 }
 
-@media screen and (max-width: 900px) {
-    .recipe-fields {
+.mobile-search-box {
+    display: none;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5em;
+}
+
+::ng-deep .p-inputswitch .p-inputswitch-slider {
+    background-color: #888888;
+}
+
+@media screen and (max-width: 750px) { 
+    ::ng-deep .p-dataview-header {
+        display: none;
+    }
+
+    .table-filters {
+        justify-content: center;
+        align-items: stretch;
         flex-direction: column;
     }
+
+    .table-filters > * {
+        margin-bottom: 1em;
+    }
+
+    .mobile-search-box {
+        display: block;
+        padding: 0.5em;
+    }
+    
 }

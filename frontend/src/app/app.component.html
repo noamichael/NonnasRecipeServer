@@ -1,18 +1,66 @@
 <div class="header">
-  <h1>
-    <span class="pi pi-star"></span>
-    <span class="text">Nonna's Kitchen</span>
-    <span class="pi pi-star"></span>
-  </h1>
+  <div class="header-inner">
+    <div class="hamburger-and-header">
+      <button pButton icon="pi pi-list" (click)="toggleSidebar()"></button>
+      <h1>
+        <a href="/">
+          <span class="text text-desktop">{{appName}} Kitchen</span>
+          <span class="text text-mobile">NR</span>
+        </a>
+      </h1>
+    </div>
+    <div class="page-actions">
+      <button *ngFor="let pageAction of pageActions" pButton type="button" [label]="pageAction.label"
+        [icon]="pageAction.icon"
+        class="desktop-{{pageAction.desktop}} mobile-{{pageAction.mobile}} p-button-{{pageAction.color}}"
+        (click)="pageAction.onClick($event)">
+      </button>
+    </div>
+  </div>
   <p-progressBar [hidden]="!loading" [style]="{height: '0.25em'}" mode="indeterminate"></p-progressBar>
   <p-progressBar [hidden]="loading" [showValue]="false" [style]="{height: '0.25em'}" value="100"></p-progressBar>
 </div>
-<router-outlet></router-outlet>
+<div class="page">
+  <router-outlet></router-outlet>
+</div>
 <div class="keyboard-wrapper">
   <button pButton icon="pi pi-times" (click)="closeKeyboard()"></button>
   <div class="simple-keyboard"></div>
 </div>
 <label>
-  <input type="checkbox" name="onScreenKeyboard" (ngModelChange)="onEnabledChange()" [(ngModel)]="keyboardService.enabled"/>
+  <input type="checkbox" name="onScreenKeyboard" (ngModelChange)="onEnabledChange()"
+    [(ngModel)]="keyboardService.enabled" />
   On Screen Keyboard
 </label>
+
+<p-sidebar [(visible)]="sidebarOpen" (onShow)="onSidebarShow()" (onHide)="onSidebarHide()">
+  <div class="profile-info">
+    <img alt="User Profile Picture" [src]="user.picture" *ngIf="user.picture">
+    <span class="username">{{user.name}}</span>
+  </div>
+  <div class="seperator"></div>
+  <div class="controls">
+    <button *ngIf="isAdmin" pButton class="p-button-info" [routerLink]="['/admin']" label="Admin" icon="pi pi-globe">
+    </button>
+    <button *ngIf="loggedIn" pButton class="p-button-danger" (click)="signOut()" label="Logout" icon="pi pi-sign-out">
+    </button>
+  </div>
+  <div id="googleLogin"></div>
+  <div class="seperator"></div>
+  <p-triStateCheckbox [(ngModel)]="darkMode" label="Dark Mode" (ngModelChange)="onDarkModeChange()">
+  </p-triStateCheckbox>
+  <div style="margin-top: .5em;" [ngSwitch]="darkMode">
+    <div *ngSwitchCase="null">
+      Using OS Default
+    </div>
+    <div *ngSwitchCase="true">
+      Set to true in local storage
+    </div>
+    <div *ngSwitchCase="false">
+      Set to false in local storage
+    </div>
+  </div>
+
+</p-sidebar>
+
+<p-confirmDialog key="appConfirm" header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>

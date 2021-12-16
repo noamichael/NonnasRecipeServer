@@ -1,0 +1,145 @@
+h1 {
+    margin: 0;
+}
+
+h1 .text {
+    font-family: 'Shadows Into Light', cursive;
+    margin-left: 1em;
+}
+
+.header span.text-mobile {
+    display: none;
+} 
+
+.header a {
+    color: white;
+    text-decoration: none;
+}
+
+.hamburger-and-header {
+    display: flex;
+}
+
+.user-profile {
+   display: flex;
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    background: #333232;
+    border-radius: 5px;
+    padding: 1em;
+    color: white;
+}
+
+.profile-info img {
+    border-radius: 50%;
+    height: 64px;
+    margin-right: 1em;
+}
+
+.seperator {
+    height: 1px;
+    width: 100%;
+    background-color: gray;
+    margin: 1em 0em;
+}
+
+/* latin */
+@font-face {
+    font-family: 'Shadows Into Light';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/assets/fonts/ShadowsIntoLight-Regular.ttf") format('truetype');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.header {
+    background: #4A148C;
+    padding: 0.3em;
+    font-size: 0.9em;
+    position: fixed;
+    height: 60px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+}
+
+p-progressbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.page {
+    padding-top: 60px;
+}
+
+.page-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.page-actions > button {
+    margin-right: 1em;
+}
+
+.desktop-hidden {
+    display: none;
+}
+
+@media screen and (max-width: 750px) {
+    .desktop-topbar {
+        display: none;
+    }
+
+    .desktop-hidden {
+        display: block;
+    }
+
+    .mobile-topbar {
+        display: block;
+    }
+
+    .page-actions button {
+        min-width: auto;
+    }
+
+    ::ng-deep .page-actions .p-button-label {
+        display: none;
+    }
+
+    ::ng-deep .page-actions .p-button-icon {
+        margin: 0;
+    }
+}
+
+
+@media screen and (max-width: 400px) {
+    .header span.text-desktop {
+       display: none;
+    }
+
+    .header span.text-mobile {
+        display: block;
+    } 
+}
+
+label {
+    display: block;
+    margin-bottom: 1em;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-around;
+}

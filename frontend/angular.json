@@ -8,7 +8,11 @@
       "sourceRoot": "src",
       "projectType": "application",
       "prefix": "nr",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -26,8 +30,7 @@
               "node_modules/primeicons/primeicons.css",
               "node_modules/primeng/resources/primeng.min.css",
               "node_modules/simple-keyboard/build/css/index.css",
-              "node_modules/primeng/resources/themes/mdc-light-deeppurple/theme.css",
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": [],
             "aot": false,
