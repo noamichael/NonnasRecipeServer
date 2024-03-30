@@ -18,7 +18,7 @@
     </div>
   </div>
   <p-progressBar [hidden]="!loading" [style]="{height: '0.25em'}" mode="indeterminate"></p-progressBar>
-  <p-progressBar [hidden]="loading" [showValue]="false" [style]="{height: '0.25em'}" value="100"></p-progressBar>
+  <p-progressBar [hidden]="loading" [showValue]="false" [style]="{height: '0.25em'}" [value]="100"></p-progressBar>
 </div>
 <div class="page">
   <router-outlet></router-outlet>
@@ -35,8 +35,8 @@
 
 <p-sidebar [(visible)]="sidebarOpen" (onShow)="onSidebarShow()" (onHide)="onSidebarHide()">
   <div class="profile-info">
-    <img alt="User Profile Picture" [src]="user.picture" *ngIf="user.picture">
-    <span class="username">{{user.name}}</span>
+    <img alt="User Profile Picture" [src]="user?.picture" *ngIf="user?.picture">
+    <span class="username">{{user?.name}}</span>
   </div>
   <div class="seperator"></div>
   <div class="controls">

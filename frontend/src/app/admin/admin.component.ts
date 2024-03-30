@@ -4,16 +4,29 @@ import { MessageService } from "primeng/api";
 import { RecipeResponse } from "../recipe.service";
 import { User } from "../schema/user";
 import { UserService } from "../shared/user.service";
+import { TableModule } from 'primeng/table';
+import { DropdownModule } from 'primeng/dropdown';
+import { ToastModule } from 'primeng/toast';
+import { PageActionComponent } from "../page-action/page-action.component";
+import { FormsModule } from "@angular/forms";
 
 @Component({
   selector: "nr-admin",
+  standalone: true,
   templateUrl: "./admin.component.html",
   styleUrls: ["./admin.component.scss"],
   providers: [MessageService],
+  imports: [
+    FormsModule,
+    TableModule,
+    DropdownModule,
+    ToastModule,
+    PageActionComponent
+  ]
 })
 export class AdminComponent implements OnInit {
-  users: User[];
-  currentUser: User;
+  users!: User[];
+  currentUser!: User;
   roles = [
     { label: "Read Only", value: "readOnly" },
     { label: "User", value: "user" },
@@ -25,12 +38,12 @@ export class AdminComponent implements OnInit {
     private userService: UserService,
     private messageService: MessageService,
     private router: Router,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.currentUser = this.userService.$auth.value;
     this.route.data.subscribe((data) => {
-      this.users = data.users.data;
+      this.users = data["users"].data;
     });
   }
 
@@ -54,7 +67,7 @@ export class AdminComponent implements OnInit {
 
     Promise.all(promises)
       .then(() => {
-        this.addMessage('success', 'All users have been saved');      
+        this.addMessage('success', 'All users have been saved');
       })
       .catch(() => {
         this.addMessage('error', 'Could not save all users');
@@ -81,7 +94,7 @@ export class CanActivateAdmin implements CanActivate {
   constructor(
     private userService: UserService,
     private router: Router,
-  ) {}
+  ) { }
 
   canActivate() {
     const isAdmin = this.userService.isAdmin();
@@ -101,7 +114,7 @@ export class UserListResolver
   implements Resolve<Promise<RecipeResponse<User[]>>> {
   constructor(
     private userService: UserService,
-  ) {}
+  ) { }
 
   resolve() {
     return this.userService.getUsers();

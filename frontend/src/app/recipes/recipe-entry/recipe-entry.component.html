@@ -18,7 +18,7 @@
             <div class="sm-6-md-12">
               <label>Recipe Type</label>
               <p-dropdown [options]="recipeTypes" [disabled]="!ownsRecipe" name="recipeType" [style]="{width: '100%'}"
-                [(ngModel)]="recipeType" optionLabel="label" required>
+                [(ngModel)]="recipeType" optionLabel="label" [required]="true">
               </p-dropdown>
             </div>
           </div>

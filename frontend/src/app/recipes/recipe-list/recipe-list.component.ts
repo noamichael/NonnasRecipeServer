@@ -7,41 +7,70 @@ import {
 } from "../../recipe.service";
 import { Recipe } from "../../schema/recipe";
 import { RecipeTableService } from "../recipe-table.service";
-import { Utils } from "src/app/utils";
-import { LazyLoadEvent } from "primeng/api";
-import { DataView } from "primeng/dataview";
-import { UserService } from "src/app/shared/user.service";
+import { LazyLoadEvent, SharedModule } from "primeng/api";
+import { DataView, DataViewModule } from "primeng/dataview";
 import { Subscription } from "rxjs";
+import { UserService } from "../../shared/user.service";
+import { Utils } from "../../utils";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { CardModule } from "primeng/card";
+import { ButtonModule } from "primeng/button";
+import { InputTextModule } from "primeng/inputtext";
+import { DropdownModule } from "primeng/dropdown";
+import { TriStateCheckboxModule } from "primeng/tristatecheckbox";
+import { CheckboxModule } from "primeng/checkbox";
+import { PageActionComponent } from "../../page-action/page-action.component";
+import { DialogModule } from "primeng/dialog";
+import { InputSwitchModule } from "primeng/inputswitch";
+import { PopoverKeyboardDirective } from "../../shared/popover-keyboard.directive";
 
 interface Filters {
   recipeName?: string;
   recipeType?: TypeOption | string;
-  weightWatchers?: boolean;
+  weightWatchers?: boolean | null;
   page?: number;
   userId?: TypeOption | string;
 }
 
 @Component({
+  standalone: true,
   selector: "nr-recipe-list",
   templateUrl: "./recipe-list.component.html",
   styleUrls: ["./recipe-list.component.scss"],
+  imports: [
+    CommonModule,
+    FormsModule,
+    DataViewModule,
+    CardModule,
+    ButtonModule,
+    InputTextModule,
+    DropdownModule,
+    TriStateCheckboxModule,
+    CheckboxModule,
+    PageActionComponent,
+    DialogModule,
+    InputSwitchModule,
+    PopoverKeyboardDirective,
+    SharedModule
+  ]
 })
 export class RecipeListComponent implements OnInit, OnDestroy {
-  recipes: RecipeResponse<Recipe[]>;
+  recipes!: RecipeResponse<Recipe[]>;
 
   filters: Filters = {};
-  recipeTypes: TypeOption[];
-  recipeOwners: TypeOption[];
-  showFilters: boolean;
+  recipeTypes!: TypeOption[];
+  recipeOwners!: TypeOption[];
+  showFilters!: boolean;
   mobile = false;
   loggedIn: boolean = false;
 
-  private doFilter: Function;
+  private doFilter!: Function;
   private firstLoad = true;
-  private mediaQuery: MediaQueryList;
-  private subscriptions: Subscription[];
+  private mediaQuery!: MediaQueryList;
+  private subscriptions!: Subscription[];
   private resetScroll = false;
-  private lastLoadEvent: LazyLoadEvent
+  private lastLoadEvent!: LazyLoadEvent
 
   onMediaMatch = (e: MediaQueryListEvent) => {
     this.mobile = e.matches;
@@ -65,13 +94,13 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     this.mediaQuery.addEventListener("change", this.onMediaMatch);
 
     this.route.data.subscribe((data) => {
-      this.recipes = data.recipes;
+      this.recipes = data["recipes"];
     });
     this.recipeTypes = this.recipeTableService.recipeTypes;
     this.recipeOwners = this.recipeTableService.recipeOwners;
     this.route.params.subscribe((params) => {
-      this.filters.recipeName = params.recipeName;
-      switch ("" + params.weightWatchers) {
+      this.filters.recipeName = params["recipeName"];
+      switch ("" + params["weightWatchers"]) {
         case "true":
           this.filters.weightWatchers = true;
           break;
@@ -82,17 +111,19 @@ export class RecipeListComponent implements OnInit, OnDestroy {
           this.filters.weightWatchers = null;
       }
       this.filters.recipeType = this.recipeTypes.filter((rt) =>
-        rt.value == params.recipeType
+        rt.value == params["recipeType"]
       )[0];
       this.filters.userId =
-        this.recipeOwners.filter((rt) => rt.value == params.userId)[0];
+        this.recipeOwners.filter((rt) => rt.value == params["userId"])[0];
 
       if (this.resetScroll) {
         this.resetScroll = false;
         // Update reset the scroll bar on page change. I do this here
         // instead of in the app.component because I don't want to
         // reset scrolling when navigating backwards
-        document.scrollingElement.scrollTop = 0;
+        if (document.scrollingElement){
+          document.scrollingElement.scrollTop = 0;
+        }
       }
     });
     this.doFilter = Utils.debounce((field: string, dt: DataView) => {
@@ -128,9 +159,9 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(table: DataView) {
-    this.filters.recipeType = null;
-    this.filters.recipeName = null;
-    this.filters.userId = null;
+    this.filters.recipeType = "";
+    this.filters.recipeName = "";
+    this.filters.userId = "";
     this.filters.weightWatchers = null;
     this.filters.page = 1;
     this.onLazyLoad({ first: 0, rows: this.recipes.count });
@@ -157,20 +188,20 @@ export class RecipeListComponent implements OnInit, OnDestroy {
     }
 
     const filters: Filters = {
-      page: ($event.first / $event.rows) + 1,
+      page: Math.round(($event.first || 1) / ($event.rows || 1)) + 1,
     };
     if (this.filters.recipeName) {
       filters.recipeName = this.filters.recipeName;
     }
-    if (this.filters.recipeType && this.filters.recipeType["value"]) {
-      filters.recipeType = this.filters.recipeType["value"];
+    if (this.filters.recipeType && (this.filters.recipeType as TypeOption).value) {
+      filters.recipeType = (this.filters.recipeType as TypeOption).value;
     }
     if (this.filters.weightWatchers) {
       filters.weightWatchers = this.filters.weightWatchers;
     }
 
-    if (this.filters.userId && this.filters.userId["value"]) {
-      filters.userId = this.filters.userId["value"];
+    if (this.filters.userId && (this.filters.userId as TypeOption).value) {
+      filters.userId = (this.filters.userId as TypeOption).value
     }
     
     this.lastLoadEvent = $event;
