@@ -13,7 +13,9 @@ export interface RecipeResponse<T> {
 
 export interface TypeOption { label: string, value: string }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class RecipeService {
 
   constructor(
@@ -61,7 +63,7 @@ export class RecipeService {
   }
 
   deleteRecipe(recipe: Recipe) {
-    return this.http.delete(this.getRecipeUrl(recipe.id));
+    return this.http.delete(this.getRecipeUrl(recipe.id as number));
   }
 
   ownsRecipe(user: User, recipe: Recipe) {

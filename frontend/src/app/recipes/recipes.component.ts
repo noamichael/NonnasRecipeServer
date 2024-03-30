@@ -1,15 +1,20 @@
 import { Component, OnInit, Injectable } from '@angular/core';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, ActivatedRoute } from '@angular/router';
-import { RecipeResponse, RecipeService } from '../recipe.service';
+import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, ActivatedRoute, RouterOutlet } from '@angular/router';
 import { Recipe } from '../schema/recipe';
 import { User } from '../schema/user';
 import { RecipeTableService } from './recipe-table.service';
+import { RecipeResponse, RecipeService, TypeOption } from '../recipe.service';
 
 @Component({
+  standalone: true,
   selector: 'nr-recipes',
   templateUrl: './recipes.component.html',
   styleUrls: ['./recipes.component.scss'],
-  providers: [RecipeTableService]
+  providers: [RecipeTableService],
+  imports: [
+    RouterOutlet
+  ]
+  
 })
 export class RecipesComponent implements OnInit {
 
@@ -20,11 +25,11 @@ export class RecipesComponent implements OnInit {
 
   ngOnInit() {
     this.route.data.subscribe(data => {
-      const recipeTypes = data.recipeTypes.data.map(s => { return { label: s, value: s } });
-      const recipeOwners = data.recipeOwners.data.map(s => ( { label: s.name, value: `${s.id}` }));
+      const recipeTypes: TypeOption[] = (data["recipeTypes"].data as string[]).map(s => { return { label: s, value: s } });
+      const recipeOwners: TypeOption[] = (data["recipeOwners"].data as User[]).map(s => ( { label: s.name, value: `${s.id}` }));
      
-      recipeTypes.unshift({ label: '-- Recipe Type --', value: null });
-      recipeOwners.unshift({ label: '-- Recipe Author --', value: null });
+      recipeTypes.unshift({ label: '-- Recipe Type --', value: '' });
+      recipeOwners.unshift({ label: '-- Recipe Author --', value: '' });
 
       this.recipeTableService.recipeTypes = recipeTypes;
       this.recipeTableService.recipeOwners = recipeOwners;
@@ -33,7 +38,9 @@ export class RecipesComponent implements OnInit {
 
 }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class RecipesResolver implements Resolve<RecipeResponse<Recipe[]>> {
 
   constructor(
@@ -44,14 +51,16 @@ export class RecipesResolver implements Resolve<RecipeResponse<Recipe[]>> {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ) {
-    const page = route.params.page || 1;
-    const count = route.params.count || 25;
+    const page = route.params["page"] || 1;
+    const count = route.params["count"] || 25;
 
     return this.recipeService.getRecipes(page, count, route.params);
   }
 }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class RecipeTypesResolver implements Resolve<RecipeResponse<string[]>> {
 
   constructor(

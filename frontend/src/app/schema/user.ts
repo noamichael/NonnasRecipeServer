@@ -10,10 +10,10 @@ export interface User {
 }
 
 export const anonymous: User = Object.freeze({
-  credential: null,
-  email: null,
+  credential: '',
+  email: '',
   id: 0,
-  picture: null,
+  picture: '',
   name: "anonymous",
   userRole: 'readOnly'
 });

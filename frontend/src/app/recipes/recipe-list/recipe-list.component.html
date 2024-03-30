@@ -19,13 +19,13 @@
       <label>Recipe Type</label>
       <p-dropdown appendTo="body" [options]="recipeTypes" [(ngModel)]="filters.recipeType"
         (ngModelChange)="onFilterChange('recipeType', dv)" name="recipeType" [style]="{width: '100%'}"
-        optionLabel="label" required>
+        optionLabel="label" [required]="true">
       </p-dropdown>
     </div>
     <div>
       <label>Author</label>
       <p-dropdown appendTo="body" [options]="recipeOwners" [(ngModel)]="filters.userId" (ngModelChange)="onFilterChange('userId', dv)"
-        name="userId" [style]="{width: '100%'}" optionLabel="label" required>
+        name="userId" [style]="{width: '100%'}" optionLabel="label" [required]="true">
       </p-dropdown>
     </div>
     <div>
@@ -49,34 +49,36 @@
 <p-dataView #dv (onLazyLoad)="onLazyLoad($event)" [value]="recipes.data" [lazy]="true" [paginator]="true"
   [showPageLinks]="!mobile" [rows]="recipes.count" dataKey="id" [totalRecords]="recipes.totalRecordCount"
   paginatorPosition="bottom">
-  <p-header>
+  <ng-template pTemplate="header">
     <ng-container *ngTemplateOutlet="pageFilters"></ng-container>
-  </p-header>
-  <ng-template let-recipe pTemplate="listItem">
-    <p-card class="recipe-card" [header]="recipe.recipeName" (click)="onRowSelect(recipe)">
-      <div class="recipe-fields">
-        <div class="recipe-field">
-          <div>Type:&nbsp;</div>
-          <div><b>{{recipe.recipeType}}</b></div>
+  </ng-template>
+  <ng-template let-recipes pTemplate="list">
+    @for (recipe of recipes; track $index) {
+      <p-card class="recipe-card" [header]="recipe.recipeName" (click)="onRowSelect(recipe)">
+        <div class="recipe-fields">
+          <div class="recipe-field">
+            <div>Type:&nbsp;</div>
+            <div><b>{{recipe.recipeType}}</b></div>
+          </div>
+          <div class="recipe-field">
+            <div>Cook Time:&nbsp;</div>
+            <div><b>{{recipe.cookTime || 'N/A'}}</b></div>
+          </div>
+          <div class="recipe-field">
+            <div>Serving:&nbsp;</div>
+            <div><b>{{recipe.servingSize || 'N/A'}}</b></div>
+          </div>
+          <div class="recipe-field">
+            <div>WW:&nbsp;</div>
+            <div><b>{{recipe.weightWatchers ? 'Yes' : 'No'}}</b></div>
+          </div>
+          <div class="recipe-field">
+            <div>Pts.:&nbsp;</div>
+            <div><b>{{recipe.points || 'N/A'}}</b></div>
+          </div>
         </div>
-        <div class="recipe-field">
-          <div>Cook Time:&nbsp;</div>
-          <div><b>{{recipe.cookTime || 'N/A'}}</b></div>
-        </div>
-        <div class="recipe-field">
-          <div>Serving:&nbsp;</div>
-          <div><b>{{recipe.servingSize || 'N/A'}}</b></div>
-        </div>
-        <div class="recipe-field">
-          <div>WW:&nbsp;</div>
-          <div><b>{{recipe.weightWatchers ? 'Yes' : 'No'}}</b></div>
-        </div>
-        <div class="recipe-field">
-          <div>Pts.:&nbsp;</div>
-          <div><b>{{recipe.points || 'N/A'}}</b></div>
-        </div>
-      </div>
-    </p-card>
+      </p-card>
+    }
   </ng-template>
 </p-dataView>
 

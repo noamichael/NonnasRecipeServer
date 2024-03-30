@@ -13,20 +13,21 @@ import {
 
 @Component({
   selector: "nr-page-action",
+  standalone: true,
   templateUrl: "./page-action.component.html",
   styleUrls: ["./page-action.component.scss"],
 })
 export class PageActionComponent implements OnInit, OnDestroy {
   @Input()
-  label: string;
+  label!: string;
   @Input()
-  icon: string;
+  icon!: string;
   @Input()
-  color: string;
+  color: string = "primary";
   @Input()
-  desktop: PageActionPosition;
+  desktop!: PageActionPosition;
   @Input()
-  mobile: PageActionPosition;
+  mobile!: PageActionPosition;
   @Output()
   click = new EventEmitter<MouseEvent>();
 

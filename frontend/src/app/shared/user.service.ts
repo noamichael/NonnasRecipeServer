@@ -1,11 +1,10 @@
 import { Injectable, NgZone } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
-import { anonymous, User } from "../schema/user";
-import jwt_decode from "jwt-decode";
+import { BehaviorSubject, lastValueFrom } from "rxjs";
+import { anonymous, User, UserRole } from "../schema/user";
+import { jwtDecode } from "jwt-decode";
 import { HttpClient } from "@angular/common/http";
 import { RecipeResponse } from "../recipe.service";
 
-declare const google: any;
 const client_id =
   "168337345714-natmvlg4lc80c2nfn8ld76ub9im586e4.apps.googleusercontent.com";
 
@@ -27,7 +26,7 @@ export class UserService {
   constructor(
     private http: HttpClient,
     private ngZone: NgZone,
-  ) {}
+  ) { }
 
   bootstrap() {
     google.accounts.id.initialize({
@@ -37,9 +36,9 @@ export class UserService {
         this.ngZone.run(() => {
           this.verify(response.credential).then((verifyRes) => {
             if (verifyRes["ok"]) {
-              const user = jwt_decode(response.credential) as User;
-              user.id = verifyRes.user.id;
-              user.userRole = verifyRes.user.userRole;
+              const user = jwtDecode(response.credential) as User;
+              user.id = verifyRes.user?.id as number;
+              user.userRole = verifyRes.user?.userRole as UserRole;
               this.updateUser(user);
             }
           });
@@ -65,13 +64,11 @@ export class UserService {
   }
 
   private verify(token: string): Promise<VerifyResponse> {
-    return this.http.post<VerifyResponse>("/api/auth/verify", { token })
-      .toPromise();
+    return lastValueFrom(this.http.post<VerifyResponse>("/api/auth/verify", { token }))
   }
 
   private getCurrentUser(): Promise<User> {
-    return this.http.get<User>("/api/auth/identity")
-      .toPromise();
+    return lastValueFrom(this.http.get<User>("/api/auth/identity"));
   }
 
   promptForLogin() {
@@ -85,29 +82,27 @@ export class UserService {
   }
 
   renderLoginButton() {
-    google.accounts.id.renderButton(document.getElementById("googleLogin"), {
+    google.accounts.id.renderButton(document.getElementById("googleLogin") as HTMLElement, {
       theme: "outline",
       size: "large",
-    });
+    } as any);
   }
 
   destroyLoginButton() {
     const button = document.getElementById("googleLogin");
     if (button) {
-      document.getElementById("googleLogin").childNodes.forEach((n) =>
+      document.getElementById("googleLogin")!.childNodes.forEach((n) =>
         n.remove()
       );
     }
   }
 
   getUsers(): Promise<RecipeResponse<User[]>> {
-    return this.http.get<RecipeResponse<User[]>>("/api/auth/users")
-      .toPromise();
+    return lastValueFrom(this.http.get<RecipeResponse<User[]>>("/api/auth/users"));
   }
 
   saveUser(user: User): Promise<RecipeResponse<User[]>> {
-    return this.http.post<RecipeResponse<User[]>>("/api/auth/users", user)
-      .toPromise();
+    return lastValueFrom(this.http.post<RecipeResponse<User[]>>("/api/auth/users", user));
   }
 
   isSignedIn() {

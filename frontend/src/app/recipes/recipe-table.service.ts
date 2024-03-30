@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { TypeOption } from '../recipe.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class RecipeTableService {
 
-  recipeTypes: TypeOption[]
-  recipeOwners: TypeOption[]
+  recipeTypes: TypeOption[] = []
+  recipeOwners: TypeOption[] = []
 
-  constructor() { }
 }

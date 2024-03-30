@@ -5,6 +5,7 @@ export type PageActionPosition = 'hidden' | 'topbar' | 'bottom-sheet';
 interface PageAction {
   label: string;
   icon: string;
+  color: string;
   desktop: PageActionPosition;
   mobile: PageActionPosition;
   onClick: (event: MouseEvent) => void;

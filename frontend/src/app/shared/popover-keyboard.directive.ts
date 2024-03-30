@@ -3,6 +3,7 @@ import { NgControl } from '@angular/forms';
 import { KeyboardService, ActiveInput } from './keyboard.service';
 
 @Directive({
+  standalone: true,
   selector: 'input'
 })
 export class PopoverKeyboardDirective implements OnInit, OnDestroy, ActiveInput {
