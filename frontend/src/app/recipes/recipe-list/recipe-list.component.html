@@ -10,30 +10,30 @@
   (click)="showFilters = !showFilters">
 </nr-page-action>
 
-<ng-template #pageFilters>
+<ng-template #pageFilters let-id="id">
   <div class="table-filters">
     <div>
-      <label for="recipeName">Recipe Name</label>
+      <label class="label" for="recipeName">Recipe Name</label>
       <input type="text" id="recipeName" class="table-filter" [(ngModel)]="filters.recipeName"
         (ngModelChange)="onFilterChange('recipeName', dv)" placeholder="Recipe Name" pInputText>
     </div>
     <div>
-      <label>Recipe Type</label>
-      <p-dropdown appendTo="body" [options]="recipeTypes" [(ngModel)]="filters.recipeType"
+      <span class="label">Recipe Type</span>
+      <p-dropdown inputId="recipeTypeFilter_{{id}}" appendTo="body" [options]="recipeTypes" [(ngModel)]="filters.recipeType"
         (ngModelChange)="onFilterChange('recipeType', dv)" name="recipeType" [style]="{width: '100%'}"
         optionLabel="label" [required]="true">
       </p-dropdown>
     </div>
     <div>
-      <label>Author</label>
-      <p-dropdown appendTo="body" [options]="recipeOwners" [(ngModel)]="filters.userId" (ngModelChange)="onFilterChange('userId', dv)"
+      <span class="label">Author</span>
+      <p-dropdown appendTo="body" inputId="author_{{id}}" [options]="recipeOwners" [(ngModel)]="filters.userId" (ngModelChange)="onFilterChange('userId', dv)"
         name="userId" [style]="{width: '100%'}" optionLabel="label" [required]="true">
       </p-dropdown>
     </div>
     <div>
-      <label>WW</label>
+      <span class="label">WW</span>
       <p-inputSwitch name="ww" [(ngModel)]="filters.weightWatchers"
-        (ngModelChange)="onFilterChange('weightWatchers', dv)">
+        (ngModelChange)="onFilterChange('weightWatchers', dv)" inputId="ww_{{id}}">
       </p-inputSwitch>
     </div>
   </div>
@@ -52,7 +52,7 @@
   [showPageLinks]="!mobile" [rows]="recipes.count" dataKey="id" [totalRecords]="recipes.totalRecordCount"
   paginatorPosition="bottom">
   <ng-template pTemplate="header">
-    <ng-container *ngTemplateOutlet="pageFilters"></ng-container>
+    <ng-container *ngTemplateOutlet="pageFilters; context: {id: 'list'}"></ng-container>
   </ng-template>
   <ng-template let-recipes pTemplate="list">
     @for (recipe of recipes; track $index) {
@@ -85,7 +85,7 @@
 </p-dataView>
 
 <p-dialog header="Filter Recipes" [(visible)]="showFilters" [style]="{width: '95%'}">
-  <ng-container *ngTemplateOutlet="pageFilters"></ng-container>
+  <ng-container *ngTemplateOutlet="pageFilters; context: {id: 'modal'}"></ng-container>
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Clear Filters" icon="pi pi-times" (click)="clearFilters(dv)"
       class="p-button-danger">

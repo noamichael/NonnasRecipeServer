@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http'
 import { Recipe } from './schema/recipe';
 import { User } from './schema/user';
+import { lastValueFrom } from 'rxjs';
 
 export interface RecipeResponse<T> {
   data: T
@@ -54,11 +55,11 @@ export class RecipeService {
   }
 
   saveRecipe(recipe: Recipe) {
-    return this.http.post<RecipeResponse<Recipe>>(this.getRecipesUrl(), recipe);
+    return lastValueFrom(this.http.post<RecipeResponse<Recipe>>(this.getRecipesUrl(), recipe));
   }
 
   deleteRecipe(recipe: Recipe) {
-    return this.http.delete(this.getRecipeUrl(recipe.id as number));
+    return lastValueFrom(this.http.delete(this.getRecipeUrl(recipe.id as number)));
   }
 
   ownsRecipe(user: User, recipe: Recipe) {

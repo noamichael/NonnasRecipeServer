@@ -24,8 +24,10 @@ html, body, body nr-app .ui-widget {
     font-size: 16px;
 }
 
-label {
+.label {
     font-weight: bold;
+    display: block;
+    margin-bottom: 0.5em;
 }
 
 

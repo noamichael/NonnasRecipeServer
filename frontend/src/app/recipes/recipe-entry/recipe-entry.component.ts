@@ -1,6 +1,5 @@
 import {
   Component,
-  Injectable,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -20,9 +19,7 @@ import { RecipeStep } from "../../schema/recipe-step";
 import { Utils } from "../../utils";
 import {
   ActivatedRoute,
-  ActivatedRouteSnapshot,
   Router,
-  RouterStateSnapshot,
 } from "@angular/router";
 import { of, Subscription } from "rxjs";
 import { RecipeTableService } from "../recipe-table.service";
@@ -36,6 +33,7 @@ import { CheckboxModule } from "primeng/checkbox";
 import { FocusDirective } from "../../shared/focus.directive";
 import { FieldsetModule } from "primeng/fieldset";
 import { PopoverKeyboardDirective } from "../../shared/popover-keyboard.directive";
+import { InputTextModule } from "primeng/inputtext";
 
 @Component({
   standalone: true,
@@ -53,7 +51,8 @@ import { PopoverKeyboardDirective } from "../../shared/popover-keyboard.directiv
     CheckboxModule,
     FocusDirective,
     FieldsetModule,
-    PopoverKeyboardDirective
+    PopoverKeyboardDirective,
+    InputTextModule
   ]
 })
 export class RecipeEntryComponent implements OnInit, OnDestroy {
@@ -81,6 +80,7 @@ export class RecipeEntryComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
+    console.log(this.router)
     this.subscriptions = [
       this.userService.$auth.subscribe(() => {
         this.setOwnsRecipe();
@@ -125,10 +125,10 @@ export class RecipeEntryComponent implements OnInit, OnDestroy {
   }
 
   goToListScreen() {
-    this.router.navigate(["../../../"], { relativeTo: this.route });
+    this.router.navigate(["/", "recipes"]);
   }
 
-  saveRecipe() {
+  async saveRecipe() {
     if (!this.ownsRecipe) {
       return;
     }
@@ -147,31 +147,31 @@ export class RecipeEntryComponent implements OnInit, OnDestroy {
       ),
     };
 
-    this.recipeService.saveRecipe(recipeForm).subscribe((saved) => {
-      this.form.form.markAsPristine();
-      this.router.navigate([
-        "/",
-        "recipes",
-        saved.data.id,
-        this.recipeService.cleanRecipeName(recipeForm.recipeName || ''),
-      ]);
-    });
+    const saved = await this.recipeService.saveRecipe(recipeForm);
+
+    this.form.form.markAsPristine();
+
+    this.router.navigate([
+      "/",
+      "recipes",
+      saved.data.id,
+      this.recipeService.cleanRecipeName(recipeForm.recipeName || ''),
+    ]);
+
   }
 
   deleteRecipe() {
     const recipe = this.recipe;
     this.confirmationService.confirm({
       message:
-        `Are you sure you want to delete the recipe ${recipe.recipeName ||
-        ""}?`,
-      accept: () => {
-        if (recipe.id) {
-          this.recipeService.deleteRecipe(recipe).subscribe((r) => {
-            this.goToListScreen();
-          });
-        } else {
-          this.goToListScreen();
+        `Are you sure you want to delete the recipe ${recipe.recipeName || ""}?`,
+      accept: async () => {
+        if (!recipe.id) {
+          return this.goToListScreen();
         }
+        await this.recipeService.deleteRecipe(recipe);
+        this.form.form.markAsPristine();
+        this.goToListScreen();
       },
     });
   }
@@ -286,7 +286,7 @@ export const canActivateEntry: CanActivateFn = (route) => {
     router.navigate(["recipes", route.params['id'], "view"]);
     return false;
   }
-  
+
   return true;
 };
 
