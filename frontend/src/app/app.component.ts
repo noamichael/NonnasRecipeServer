@@ -20,7 +20,6 @@ import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { SidebarModule } from 'primeng/sidebar';
 import { TriStateCheckboxModule } from "primeng/tristatecheckbox";
 import { PageActionComponent } from "./page-action/page-action.component";
-import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { PopoverKeyboardDirective } from "./shared/popover-keyboard.directive";
 
@@ -33,7 +32,6 @@ import { PopoverKeyboardDirective } from "./shared/popover-keyboard.directive";
   providers: [ConfirmationService],
   imports: [
     RouterOutlet,
-    CommonModule,
     FormsModule,
     ProgressBarModule,
     ButtonModule,

@@ -12,7 +12,6 @@ import { DataView, DataViewModule } from "primeng/dataview";
 import { Subscription } from "rxjs";
 import { UserService } from "../../shared/user.service";
 import { Utils } from "../../utils";
-import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { CardModule } from "primeng/card";
 import { ButtonModule } from "primeng/button";
@@ -24,13 +23,14 @@ import { PageActionComponent } from "../../page-action/page-action.component";
 import { DialogModule } from "primeng/dialog";
 import { InputSwitchModule } from "primeng/inputswitch";
 import { PopoverKeyboardDirective } from "../../shared/popover-keyboard.directive";
+import { NgTemplateOutlet } from "@angular/common";
 
 interface Filters {
   recipeName?: string;
-  recipeType?: TypeOption | string;
+  recipeType?: TypeOption | string | null;
   weightWatchers?: boolean | null;
   page?: number;
-  userId?: TypeOption | string;
+  userId?: TypeOption | string | null;
 }
 
 @Component({
@@ -39,7 +39,7 @@ interface Filters {
   templateUrl: "./recipe-list.component.html",
   styleUrls: ["./recipe-list.component.scss"],
   imports: [
-    CommonModule,
+    NgTemplateOutlet,
     FormsModule,
     DataViewModule,
     CardModule,
@@ -52,7 +52,6 @@ interface Filters {
     DialogModule,
     InputSwitchModule,
     PopoverKeyboardDirective,
-    SharedModule
   ]
 })
 export class RecipeListComponent implements OnInit, OnDestroy {

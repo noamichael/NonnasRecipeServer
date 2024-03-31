@@ -1,12 +1,12 @@
 import { Routes } from "@angular/router";
-import { CanActivateEntry, CanDeactivateEntry, RecipeEntryComponent, RecipeResolver } from "./recipe-entry.component";
+import { canActivateEntry, canDeactivateEntry, RecipeEntryComponent, recipeResolver } from "./recipe-entry.component";
 import { RecipeDisplayComponent } from "./recipe-display/recipe-display.component";
 
 export const routes: Routes = [
     {
         path: ':nickname',
         resolve: {
-            recipe: RecipeResolver
+            recipe: recipeResolver
         },
         children: [
             {
@@ -16,8 +16,8 @@ export const routes: Routes = [
             {
                 path: 'edit',
                 component: RecipeEntryComponent,
-                canActivate: [CanActivateEntry],
-                canDeactivate: [CanDeactivateEntry]
+                canActivate: [canActivateEntry],
+                canDeactivate: [canDeactivateEntry]
             }
         ]
     }

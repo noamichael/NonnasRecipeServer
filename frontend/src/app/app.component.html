@@ -10,11 +10,13 @@
       </h1>
     </div>
     <div class="page-actions">
-      <button *ngFor="let pageAction of pageActions" pButton type="button" [label]="pageAction.label"
-        [icon]="pageAction.icon"
-        class="desktop-{{pageAction.desktop}} mobile-{{pageAction.mobile}} p-button-{{pageAction.color}}"
-        (click)="pageAction.onClick($event)">
-      </button>
+      @for(pageAction of pageActions; track $index) {
+        <button pButton type="button" [label]="pageAction.label"
+          [icon]="pageAction.icon"
+          class="desktop-{{pageAction.desktop}} mobile-{{pageAction.mobile}} p-button-{{pageAction.color}}"
+          (click)="pageAction.onClick($event)">
+        </button>
+      }
     </div>
   </div>
   <p-progressBar [hidden]="!loading" [style]="{height: '0.25em'}" mode="indeterminate"></p-progressBar>
@@ -35,30 +37,36 @@
 
 <p-sidebar [(visible)]="sidebarOpen" (onShow)="onSidebarShow()" (onHide)="onSidebarHide()">
   <div class="profile-info">
-    <img alt="User Profile Picture" [src]="user?.picture" *ngIf="user?.picture">
+    @if (user?.picture) {
+      <img alt="User Profile Picture" [src]="user?.picture">
+    }
     <span class="username">{{user?.name}}</span>
   </div>
   <div class="seperator"></div>
   <div class="controls">
-    <button *ngIf="isAdmin" pButton class="p-button-info" [routerLink]="['/admin']" label="Admin" icon="pi pi-globe">
-    </button>
-    <button *ngIf="loggedIn" pButton class="p-button-danger" (click)="signOut()" label="Logout" icon="pi pi-sign-out">
-    </button>
+    @if(isAdmin) {
+      <button pButton class="p-button-info" [routerLink]="['/admin']" label="Admin" icon="pi pi-globe"></button>
+    }
+    @if(loggedIn) {
+      <button pButton class="p-button-danger" (click)="signOut()" label="Logout" icon="pi pi-sign-out"></button>
+    }
   </div>
   <div id="googleLogin"></div>
   <div class="seperator"></div>
   <p-triStateCheckbox [(ngModel)]="darkMode" label="Dark Mode" (ngModelChange)="onDarkModeChange()">
   </p-triStateCheckbox>
-  <div style="margin-top: .5em;" [ngSwitch]="darkMode">
-    <div *ngSwitchCase="null">
-      Using OS Default
-    </div>
-    <div *ngSwitchCase="true">
-      Set to true in local storage
-    </div>
-    <div *ngSwitchCase="false">
-      Set to false in local storage
-    </div>
+  <div style="margin-top: .5em;">
+    @switch (darkMode) {
+      @case (null) {
+        Using OS Default
+      }
+      @case (true) {
+        Set to true in local storage
+      }
+      @case (false) {
+        Set to false in local storage
+      }
+    }
   </div>
 
 </p-sidebar>

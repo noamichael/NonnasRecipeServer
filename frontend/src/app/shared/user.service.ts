@@ -55,7 +55,7 @@ export class UserService {
   }
 
   signOut() {
-    return this.http.post("/api/auth/sign-out", "").toPromise().then(
+    return lastValueFrom(this.http.post("/api/auth/sign-out", "")).then(
       () => {
         google.accounts.id.disableAutoSelect();
         this.updateUser(anonymous);
