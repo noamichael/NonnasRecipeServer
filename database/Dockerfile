@@ -1,4 +1,4 @@
-FROM mariadb:10.4
+FROM mariadb:10.11
 
 COPY *.sql ./ 
 

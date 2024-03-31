@@ -25,6 +25,10 @@
     .p-paginator {
         justify-content: center;
     }
+    
+    .p-button-icon-only:after{
+        content: none;
+    }
 }
 
 @mixin prime-light {

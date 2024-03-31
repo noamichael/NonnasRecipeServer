@@ -20,7 +20,7 @@ COPY ./secrets/database-sa.json ./secrets/database-sa.json
 
 COPY --from=builder /tmp/build/target/NonnasRecipeServer-1.0-SNAPSHOT-jar-with-dependencies.jar ./NonnasRecipeServer.jar
 
-EXPOSE 6789
+EXPOSE 6789 8080
 
 USER 1001
 
