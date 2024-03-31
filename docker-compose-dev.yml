@@ -1,17 +1,17 @@
 version: '3'
 services:
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #   - "8080:8080"
-  #   environment:
-  #     PUBLIC_API: backend:6789
-  #     PRIVATE_API: backend:7890
+  frontend:
+    build: ./frontend
+    ports:
+    - "8080:8080"
+    environment:
+      PUBLIC_API: backend:6789
   backend:
     build: ./backend
     ports:
       - "6789:8080"
     environment:
+      PORT: 8080
       JDBC_CONNECTION_STRING: jdbc:mysql://database:3306/NonnasRecipes
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
