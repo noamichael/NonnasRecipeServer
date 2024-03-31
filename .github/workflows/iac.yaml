@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - feature-update-frontend
     paths:
       - '.github/workflows/iac.yaml'
       - 'iac/**'
