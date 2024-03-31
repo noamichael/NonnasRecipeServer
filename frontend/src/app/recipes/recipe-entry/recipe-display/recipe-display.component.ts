@@ -5,7 +5,6 @@ import { Subscription } from "rxjs";
 import { UserService } from "../../../shared/user.service";
 import { RecipeService } from "../../../recipe.service";
 import { PageActionComponent } from "../../../page-action/page-action.component";
-import { CommonModule } from "@angular/common";
 import { CardModule } from "primeng/card";
 
 @Component({
@@ -15,7 +14,6 @@ import { CardModule } from "primeng/card";
   standalone: true,
   imports: [
     PageActionComponent,
-    CommonModule,
     CardModule
   ]
 })

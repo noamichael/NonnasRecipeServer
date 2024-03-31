@@ -1,4 +1,4 @@
-import { RecipesComponent, RecipesOwnersResolver, RecipeTypesResolver } from './recipes.component';
+import { RecipesComponent, recipesOwnersResolver, recipeTypesResolver } from './recipes.component';
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
@@ -6,8 +6,8 @@ export const routes: Routes = [
     path: '',
     component: RecipesComponent,
     resolve: {
-      recipeTypes: RecipeTypesResolver,
-      recipeOwners: RecipesOwnersResolver
+      recipeTypes: recipeTypesResolver,
+      recipeOwners: recipesOwnersResolver
     },
     children: [
       {

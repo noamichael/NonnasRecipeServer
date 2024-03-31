@@ -1,5 +1,5 @@
-import { Component, Injectable, OnInit } from "@angular/core";
-import { ActivatedRoute, CanActivate, Resolve, Router } from "@angular/router";
+import { Component, OnInit, inject } from "@angular/core";
+import { ActivatedRoute, CanActivateFn, ResolveFn, Router } from "@angular/router";
 import { MessageService } from "primeng/api";
 import { RecipeResponse } from "../recipe.service";
 import { User } from "../schema/user";
@@ -87,36 +87,18 @@ export class AdminComponent implements OnInit {
   }
 }
 
-@Injectable({
-  providedIn: "***REMOVED***",
-})
-export class CanActivateAdmin implements CanActivate {
-  constructor(
-    private userService: UserService,
-    private router: Router,
-  ) { }
+export const canActivateAdmin: CanActivateFn = () => {
+  const userService = inject(UserService);
+  const router = inject(Router);
+  const isAdmin = userService.isAdmin();
 
-  canActivate() {
-    const isAdmin = this.userService.isAdmin();
-
-    if (!isAdmin) {
-      this.router.navigate(["/"]);
-    }
-
-    return isAdmin;
+  if (!isAdmin) {
+    router.navigate(["/"]);
   }
+
+  return isAdmin;
 }
 
-@Injectable({
-  providedIn: "***REMOVED***",
-})
-export class UserListResolver
-  implements Resolve<Promise<RecipeResponse<User[]>>> {
-  constructor(
-    private userService: UserService,
-  ) { }
-
-  resolve() {
-    return this.userService.getUsers();
-  }
-}
+export const userListResolver: ResolveFn<RecipeResponse<User[]>> = () => {
+  return inject(UserService).getUsers();
+};

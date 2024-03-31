@@ -1,6 +1,8 @@
-<nr-page-action *ngIf="loggedIn && canWriteRecipes" label="Add" icon="pi pi-plus" desktop="topbar" mobile="topbar" (click)="openRecipe()"
-  color="success">
-</nr-page-action>
+@if (loggedIn && canWriteRecipes) {
+  <nr-page-action label="Add" icon="pi pi-plus" desktop="topbar" mobile="topbar" (click)="openRecipe()"
+    color="success">
+  </nr-page-action>
+}
 <nr-page-action label="Clear Filters" icon="pi pi-times" desktop="topbar" mobile="hidden" (click)="clearFilters(dv)"
   color="primary">
 </nr-page-action>
@@ -11,8 +13,8 @@
 <ng-template #pageFilters>
   <div class="table-filters">
     <div>
-      <label>Recipe Name</label>
-      <input type="text" class="table-filter" [(ngModel)]="filters.recipeName"
+      <label for="recipeName">Recipe Name</label>
+      <input type="text" id="recipeName" class="table-filter" [(ngModel)]="filters.recipeName"
         (ngModelChange)="onFilterChange('recipeName', dv)" placeholder="Recipe Name" pInputText>
     </div>
     <div>
@@ -39,7 +41,7 @@
 
 <div class="mobile-search-box">
   <div class="p-inputgroup">
-    <input type="text" class="table-filter" [(ngModel)]="filters.recipeName"
+    <input type="text" id="recipeNameMobile" class="table-filter" [(ngModel)]="filters.recipeName"
       (ngModelChange)="onFilterChange('recipeName', dv)" placeholder="Recipe Name" pInputText>
     <button type="button" pButton pRipple icon="pi pi-times" (click)="clearFilters(dv)"
       class="p-button-danger"></button>

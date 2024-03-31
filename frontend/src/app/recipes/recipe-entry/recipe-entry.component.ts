@@ -4,8 +4,9 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  inject,
 } from "@angular/core";
-import { CanActivate, CanDeactivate } from "@angular/router";
+import { CanActivateFn, CanDeactivateFn, ResolveFn } from "@angular/router";
 import { FormsModule, NgForm } from "@angular/forms";
 import {
   RecipeResponse,
@@ -20,7 +21,6 @@ import { Utils } from "../../utils";
 import {
   ActivatedRoute,
   ActivatedRouteSnapshot,
-  Resolve,
   Router,
   RouterStateSnapshot,
 } from "@angular/router";
@@ -35,7 +35,6 @@ import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { CheckboxModule } from "primeng/checkbox";
 import { FocusDirective } from "../../shared/focus.directive";
 import { FieldsetModule } from "primeng/fieldset";
-import { CommonModule } from "@angular/common";
 import { PopoverKeyboardDirective } from "../../shared/popover-keyboard.directive";
 
 @Component({
@@ -45,7 +44,6 @@ import { PopoverKeyboardDirective } from "../../shared/popover-keyboard.directiv
   styleUrls: ["./recipe-entry.component.scss"],
   providers: [ConfirmationService],
   imports: [
-    CommonModule,
     FormsModule,
     CardModule,
     PageActionComponent,
@@ -203,10 +201,6 @@ export class RecipeEntryComponent implements OnInit, OnDestroy {
     });
   }
 
-  trackByIndex(number: number, item: any) {
-    return number;
-  }
-
   removeIngredient(ingredient: Ingredient) {
     this.recipe.ingredients.splice(
       this.recipe.ingredients.indexOf(ingredient),
@@ -274,58 +268,26 @@ export class RecipeEntryComponent implements OnInit, OnDestroy {
   }
 }
 
-@Injectable({
-  providedIn: "***REMOVED***"
-})
-export class RecipeResolver implements Resolve<RecipeResponse<Recipe>> {
-  constructor(
-    private recipeService: RecipeService,
-  ) { }
-
-  resolve(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot,
-  ) {
-    if (route.params['id'] === "new") {
-      return of({
-        data: { ingredients: [{}], steps: [{}] },
-      });
-    }
-    return this.recipeService.getRecipe(route.params['id']);
+export const recipeResolver: ResolveFn<RecipeResponse<Recipe>> = (route) => {
+  if (route.params['id'] === "new") {
+    return of({
+      data: { ingredients: [{}], steps: [{}] },
+    });
   }
+  return inject(RecipeService).getRecipe(route.params['id']);
+
 }
 
-@Injectable({
-  providedIn: "***REMOVED***"
-})
-export class CanDeactivateEntry implements CanDeactivate<RecipeEntryComponent> {
-  constructor() { }
+export const canActivateEntry: CanActivateFn = (route) => {
+  const userService = inject(UserService);
+  const router = inject(Router);
 
-  canDeactivate(
-    component: RecipeEntryComponent,
-    currentRoute: ActivatedRouteSnapshot,
-    currentState: RouterStateSnapshot,
-    nextState: RouterStateSnapshot,
-  ): Promise<boolean> {
-    return component.canDeactivate();
+  if (!userService.isSignedIn() || !userService.canWriteRecipes()) {
+    router.navigate(["recipes", route.params['id'], "view"]);
+    return false;
   }
-}
+  
+  return true;
+};
 
-@Injectable({
-  providedIn: "***REMOVED***"
-})
-export class CanActivateEntry implements CanActivate {
-  constructor(
-    private userService: UserService,
-    private recipeSerivce: RecipeService,
-    private router: Router,
-  ) { }
-
-  canActivate(route: ActivatedRouteSnapshot) {
-    if (!this.userService.isSignedIn() || !this.userService.canWriteRecipes()) {
-      this.router.navigate(["recipes", route.params['id'], "view"]);
-      return false;
-    }
-    return true;
-  }
-}
+export const canDeactivateEntry: CanDeactivateFn<RecipeEntryComponent> = (component) => component.canDeactivate();

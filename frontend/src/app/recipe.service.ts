@@ -11,7 +11,7 @@ export interface RecipeResponse<T> {
   totalRecordCount?: number
 }
 
-export interface TypeOption { label: string, value: string }
+export interface TypeOption { label: string, value: string | null }
 
 @Injectable({
   providedIn: '***REMOVED***'
@@ -24,11 +24,6 @@ export class RecipeService {
 
   get basePublicUrl() {
     return '/api';
-  }
-
-
-  bootstrap() {
-    return Promise.resolve("ok");
   }
 
   getRecipesUrl() {
@@ -51,7 +46,7 @@ export class RecipeService {
   }
 
   getRecipeOwners() {
-     return this.http.get<RecipeResponse<User[]>>(`${this.getRecipesUrl()}/owners`, { });
+    return this.http.get<RecipeResponse<User[]>>(`${this.getRecipesUrl()}/owners`, {});
   }
 
   getRecipeTypes() {

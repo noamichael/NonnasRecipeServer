@@ -17,7 +17,9 @@ export class PageActionService {
   pageActions: PageAction[] = [];
 
   register(pageAction: PageAction) {
-    this.pageActions.push(pageAction);
+    setTimeout(() => {
+      this.pageActions.push(pageAction);
+    })
   }
 
   unregister(pageAction: PageAction) {

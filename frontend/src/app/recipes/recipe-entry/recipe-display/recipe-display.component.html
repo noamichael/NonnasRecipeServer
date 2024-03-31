@@ -1,5 +1,7 @@
 <nr-page-action label="Back" icon="pi pi-arrow-left" (click)="back()"></nr-page-action>
-<nr-page-action *ngIf="loggedIn && ownsRecipe" label="Edit" icon="pi pi-pencil" color="info" (click)="edit()"></nr-page-action>
+@if(loggedIn && ownsRecipe) {
+  <nr-page-action label="Edit" icon="pi pi-pencil" color="info" (click)="edit()"></nr-page-action>
+}
 <p-card>
   <div class="recipe">
     <h2>{{recipe.recipeName}}</h2>
@@ -17,11 +19,15 @@
     </small>
     <ul class="ingredients">
       <li><b>Ingredients</b></li>
-      <li *ngFor="let ingredient of recipe.ingredients">{{ingredient.ingredientDescription}}</li>
+      @for(ingredient of recipe.ingredients; track $index) {
+        <li>{{ingredient.ingredientDescription}}</li>
+      }
     </ul>
     <ul class="steps">
       <li><b>Steps</b></li>
-      <li *ngFor="let step of recipe.steps">{{step.stepDescription}}</li>
+      @for (step of recipe.steps; track $index) {
+        <li>{{step.stepDescription}}</li>
+      }
     </ul>
   </div>
 </p-card>

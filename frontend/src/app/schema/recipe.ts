@@ -3,9 +3,9 @@ import { Ingredient } from './ingredient';
 
 export interface Recipe {
     id?: number
-	recipeType?: string
-	recipeName?: string
-	cookTime?: number
+    recipeType?: string | null
+    recipeName?: string | null
+    cookTime?: number
     servingSize?: string
     points?: number,
     weightWatchers?: boolean
