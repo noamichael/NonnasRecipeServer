@@ -9,14 +9,14 @@
         <p-panel header="Edit Recipe">
           <div class="row">
             <div class="sm-6-md-12">
-              <label for="recipeName">Recipe Name</label>
+              <label class="label" for="recipeName">Recipe Name</label>
               <input id="recipeName" [disabled]="!ownsRecipe" class="form-control" type="text" name="recipeName"
                 [(ngModel)]="recipe.recipeName" pInputText required>
             </div>
           </div>
           <div class="row">
             <div class="sm-6-md-12">
-              <label>Recipe Type</label>
+              <span class="label">Recipe Type</span>
               <p-dropdown [options]="recipeTypes" [disabled]="!ownsRecipe" name="recipeType" [style]="{width: '100%'}"
                 [(ngModel)]="recipeType" optionLabel="label" [required]="true">
               </p-dropdown>
@@ -24,14 +24,14 @@
           </div>
           <div class="row">
             <div class="sm-6-md-12">
-              <label for="cookTime">Cook Time</label>
+              <label class="label" for="cookTime">Cook Time</label>
               <input id="cookTime" class="form-control" [disabled]="!ownsRecipe" type="text" name="cookTime"
                 [(ngModel)]="recipe.cookTime" pInputText>
             </div>
           </div>
           <div class="row">
             <div class="sm-6-md-12">
-              <label for="servingSize">Serving Size</label>
+              <label class="label" for="servingSize">Serving Size</label>
               <input id="servingSize" class="form-control" [disabled]="!ownsRecipe" type="text" name="servingSize"
                 [(ngModel)]="recipe.servingSize" pInputText>
             </div>
@@ -46,7 +46,7 @@
           @if (recipe.weightWatchers) {
             <div class="row">
               <div class="sm-6-md-12">
-                <label for="points">Points</label>
+                <label class="label" for="points">Points</label>
                 <input id="points" class="form-control" [disabled]="!ownsRecipe" type="number" name="points"
                   [(ngModel)]="recipe.points" pInputText>
               </div>
