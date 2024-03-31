@@ -1,11 +1,16 @@
-
-resource "google_project_service" "storage_api" {
-  project = "${var.project_id}"
-  service = "storage.googleapis.com"
+variable "apis" {
+  type = list(string)
+  default = [ 
+    "iam.googleapis.com",
+    "serviceusage.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "storage.googleapis.com",
+    "run.googleapis.com"
+  ]
 }
 
-
-resource "google_project_service" "cloud_run_api" {
+resource "google_project_service" "enable_api" {
   project = "${var.project_id}"
-  service = "run.googleapis.com"
+  for_each = toset(var.apis)
+  service = each.value
 }
