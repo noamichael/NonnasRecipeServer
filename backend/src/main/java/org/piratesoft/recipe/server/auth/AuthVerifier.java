@@ -46,6 +46,7 @@ public class AuthVerifier {
             GoogleIdToken idToken = _verifier.verify(token);
 
             if (idToken == null) {
+                LOGGER.info("ID oken is INVALID!");
                 return null;
             }
             
