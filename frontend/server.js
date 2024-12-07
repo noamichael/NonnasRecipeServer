@@ -21,7 +21,7 @@ const api = process.env.PUBLIC_API || 'backend:6789';
 // app.use(helmet.xssFilter());
 
 // Point static path to dist
-app.use(express.static(path.join(__dirname, 'dist'), {
+app.use(express.static(path.join(__dirname, 'dist/frontendv2/browser'), {
     // Make sure the index.html is always loaded to
     // avoid serving old angular dist files
     setHeaders: (res, path, stat) => {
@@ -37,7 +37,7 @@ app.use('/api', doProxy(api, '/api'));
 // Catch all other routes and return the index file
 app.get('*', (req, res) => {
     noCache(res);
-    res.sendFile(path.join(__dirname, 'dist/index.html'));
+    res.sendFile(path.join(__dirname, 'dist/frontendv2/browser/index.html'));
 });
 
 /**
@@ -46,6 +46,7 @@ app.get('*', (req, res) => {
 const port = process.env.PORT || '8080';
 
 app.listen(port, () => {
+    console.log(`Proxying backend [${api}]`);
     console.log(`Nonna's Recipe Frontend listening on ${port}`);
 });
 

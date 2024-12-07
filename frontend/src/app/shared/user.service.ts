@@ -28,30 +28,47 @@ export class UserService {
     private ngZone: NgZone,
   ) { }
 
-  bootstrap() {
+  async bootstrap() {
+
+    const windowLoaded = new Promise<void>(resolve => {
+      window.addEventListener('load', () => {
+        resolve();
+      })
+    });
+
+    await windowLoaded
+
     google.accounts.id.initialize({
       client_id,
+      // This will need to be enabled once Chrome disables third-party cookies
+      //use_fedcm_for_prompt: true,
       callback: (response) => {
+
         console.log(response);
-        this.ngZone.run(() => {
-          this.verify(response.credential).then((verifyRes) => {
-            if (verifyRes["ok"]) {
-              const user = jwtDecode(response.credential) as User;
-              user.id = verifyRes.user?.id as number;
-              user.userRole = verifyRes.user?.userRole as UserRole;
-              this.updateUser(user);
-            }
-          });
+
+        this.ngZone.run(async () => {
+
+          const verifyRes = await this.verify(response.credential)
+
+          if (verifyRes.ok) {
+            const user = jwtDecode(response.credential) as User;
+            user.id = verifyRes.user?.id as number;
+            user.userRole = verifyRes.user?.userRole as UserRole;
+            this.updateUser(user);
+          }
+
         });
       },
     });
 
-    return this.getCurrentUser().catch(() => {
-      this.promptForLogin();
-      return anonymous;
-    }).then((user) => {
-      this.updateUser(user);
-    });
+    try {
+      const user = await this.getCurrentUser()
+      this.updateUser(user)
+    } catch (e) {
+      this.promptForLogin()
+      this.updateUser(anonymous)
+    }
+
   }
 
   signOut() {
@@ -73,11 +90,7 @@ export class UserService {
 
   promptForLogin() {
     this.ngZone.run(() => {
-      google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // TODO: do I need to know this?
-        }
-      });
+      google.accounts.id.prompt();
     });
   }
 
