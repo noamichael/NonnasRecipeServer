@@ -2,9 +2,12 @@ package org.piratesoft.recipe.server;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.gson.Gson;
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+import io.javalin.http.Cookie;
 
 import org.piratesoft.recipe.server.auth.AuthVerifier;
 import org.piratesoft.recipe.server.auth.VerifyRequest;
@@ -16,11 +19,6 @@ import org.piratesoft.recipe.server.sql.MySqlInstance;
 import org.piratesoft.recipe.server.sql.repository.UserRepository;
 import org.piratesoft.recipe.server.util.StringUtil;
 
-import spark.Request;
-import spark.Response;
-import spark.ResponseTransformer;
-import spark.Service;
-
 public class AuthEndpoint {
 
     static final Logger LOGGER = Logger.getLogger(AuthEndpoint.class.getName());
@@ -28,98 +26,110 @@ public class AuthEndpoint {
     public static final String REQ_USER = "nr_req_user";
     public static final AuthVerifier VERIFIER = new AuthVerifier();
 
-    public static void setupEndpoints(Service service) {
-
-        final Gson gson = new Gson();
-        final ResponseTransformer JSON = new JsonTransformer();
+    public static void setupEndpoints(Javalin service) {
 
         service.before(AuthEndpoint::before);
 
         int TWENTY_FOUR_HOURS = 86400;
 
-        service.post("/auth/verify", (req, res) -> {
-            VerifyRequest request = gson.fromJson(req.body(), VerifyRequest.class);
+        service.post("/auth/verify", (ctx) -> {
+            VerifyRequest request = ctx.bodyAsClass(VerifyRequest.class);
 
             RecipeUser user = VERIFIER.verify(request.token);
 
-            if (user != null) {
-                UserRepository repository = new UserRepository(MySqlInstance.get());
-                // Make an entry in the database for this user if we haven't
-                // seen them before
-                int userId = repository.saveUser(user, true);
-                if (userId < 0) {
-                    res.status(401);
-                    return "Error signing in.";
-                }
-                // Lookup user from database
-                user = repository.getUser(userId).get(0);
-                // String name, String value, int maxAge, boolean secured, boolean httpOnly
-                res.cookie("/", JWT_COOKIE, request.token, TWENTY_FOUR_HOURS, true, true);
-                return new VerifyResponse(true, user);
-            } else {
+            if (user == null) {
                 // Remove the cookie if it's invalid
-                res.cookie("/", JWT_COOKIE, null, 0, true, true);
+                ctx.cookie(
+                    new Cookie(JWT_COOKIE, "", "/", 0, true, 0, true)
+                );
+                ctx.json(new VerifyResponse());
+                return;
+            } 
+
+            UserRepository repository = new UserRepository(MySqlInstance.get());
+            // Make an entry in the database for this user if we haven't
+            // seen them before
+            int userId = repository.saveUser(user, true);
+            if (userId < 0) {
+                ctx.status(401);
+                ctx.result("Error signing in.");
+                return;
             }
+            // Lookup user from database
+            user = repository.getUser(userId).get(0);
+            // String name, String value, String path, int maxAge, boolean secured, int version, boolean httpOnly
+            ctx.cookie(
+                new Cookie(JWT_COOKIE, request.token, "/", TWENTY_FOUR_HOURS, true, 0, true)
+            );
+            ctx.json(new VerifyResponse(true, user));
 
-            return new VerifyResponse();
-        }, JSON);
 
-        service.post("/auth/sign-out", (req, res) -> {
-            res.cookie("/", JWT_COOKIE, null, 0, true, true);
-            return new VerifyResponse(true, null);
-        }, JSON);
+        });
 
-        service.get("/auth/identity", (req, res) -> {
-            Optional<RecipeUser> user = AuthEndpoint.lookupUser(req, MySqlInstance.get());
+        service.post("/auth/sign-out", (ctx) -> {
+            ctx.cookie(
+                new Cookie(JWT_COOKIE, "", "/", 0, true, 0, true)
+            );
+            ctx.json(new VerifyResponse(true, null));
+        });
+
+        service.get("/auth/identity", (ctx) -> {
+            Optional<RecipeUser> user = AuthEndpoint.lookupUser(ctx, MySqlInstance.get());
 
             if (!user.isPresent()) {
-                res.status(404);
-                return new RecipeResponse.RecipeError("404", "Not Found");
+                ctx.status(404);
+                ctx.json(new RecipeResponse.RecipeError("404", "Not Found"));
+                return;
             }
 
-            return user.get();
-        }, JSON);
+            ctx.json(user.get());
+        });
 
-        service.get("/auth/users", (req, res) -> {
-            Optional<RecipeUser> user = AuthEndpoint.lookupUser(req, MySqlInstance.get());
+        service.get("/auth/users", (ctx) -> {
+            Optional<RecipeUser> user = AuthEndpoint.lookupUser(ctx, MySqlInstance.get());
 
             if (!user.isPresent()) {
-                res.status(401);
-                return new RecipeResponse.RecipeError("401", "Unauthorized");
+                ctx.status(401);
+                ctx.json(new RecipeResponse.RecipeError("401", "Unauthorized"));
+                return;
             }
 
             RecipeUser requestUser = user.get();
 
             if (!requestUser.canReadUsers()) {
-                res.status(403);
-                return new RecipeResponse.RecipeError("403", "Forbidden");
+                ctx.status(403);
+                ctx.json(new RecipeResponse.RecipeError("403", "Forbidden"));
+                return;
             }
 
             UserRepository repository = new UserRepository(MySqlInstance.get());
 
-            return repository.getUsers();
-        }, JSON);
+            ctx.json(repository.getUsers());
+        });
 
-        service.post("/auth/users", (req, res) -> {
-            Optional<RecipeUser> user = AuthEndpoint.lookupUser(req, MySqlInstance.get());
+        service.post("/auth/users", (ctx) -> {
+            Optional<RecipeUser> user = AuthEndpoint.lookupUser(ctx, MySqlInstance.get());
 
             if (!user.isPresent()) {
-                res.status(401);
-                return new RecipeResponse.RecipeError("401", "Unauthorized");
+                ctx.status(401);
+                ctx.json(new RecipeResponse.RecipeError("401", "Unauthorized"));
+                return;
             }
 
             RecipeUser requestUser = user.get();
 
             if (!requestUser.canUpdateUsers()) {
-                res.status(403);
-                return new RecipeResponse.RecipeError("403", "Forbidden");
+                ctx.status(403);
+                ctx.json(new RecipeResponse.RecipeError("403", "Forbidden"));
+                return;
             }
 
-            RecipeUser userToSave = gson.fromJson(req.body(), RecipeUser.class);
+            RecipeUser userToSave = ctx.bodyAsClass(RecipeUser.class);
 
             if (userToSave.id == requestUser.id) {
-                res.status(403);
-                return new RecipeResponse.RecipeError("403", "Forbidden - don't try to update yourself");
+                ctx.status(403);
+                ctx.json(new RecipeResponse.RecipeError("403", "Forbidden - don't try to update yourself"));
+                return;
             }
 
             UserRepository repository = new UserRepository(MySqlInstance.get());
@@ -127,8 +137,9 @@ public class AuthEndpoint {
             List<RecipeUser> userFromDbResult = repository.getUser(userToSave.id);
 
             if (userFromDbResult.size() < 1) {
-                res.status(404);
-                return new RecipeResponse.RecipeError("404", "Not Found - User not found");
+                ctx.status(404);
+                ctx.json(new RecipeResponse.RecipeError("404", "Not Found - User not found"));
+                return;
             }
 
             RecipeUser userFromDb = userFromDbResult.get(0);
@@ -138,8 +149,9 @@ public class AuthEndpoint {
             userFromDb.userRole = userFromDb.normalizeRole();
 
             if (!userFromDb.hasValidRole()) {
-                res.status(400);
-                return new RecipeResponse.RecipeError("400", "Bad Request - invalid role provided");
+                ctx.status(400);
+                ctx.json(new RecipeResponse.RecipeError("400", "Bad Request - invalid role provided"));
+                return;
             }
 
             int result = repository.saveUser(userFromDb, false);
@@ -148,14 +160,14 @@ public class AuthEndpoint {
                 System.out.println("Could not save user " + userFromDb.name);
             }
 
-            return userFromDb;
+            ctx.json(userFromDb);
 
-        }, JSON);
+        });
 
     }
 
-    public static void before(Request request, Response response) {
-        String jwt = request.cookie(JWT_COOKIE);
+    public static void before(Context ctx) {
+        String jwt = ctx.cookie(JWT_COOKIE);
         String userImpersonation = System.getenv("USER_IMPERSONATION");
 
         if (StringUtil.isNullOrEmpty(userImpersonation) && StringUtil.isNullOrEmpty(jwt)) {
@@ -165,16 +177,16 @@ public class AuthEndpoint {
         RecipeUser user = VERIFIER.verify(jwt);
 
         if (user != null) {
-            request.attribute(REQ_USER, user);
+            ctx.attribute(REQ_USER, user);
         }
     }
 
-    public static Optional<RecipeUser> extract(Request request) {
-        return Optional.ofNullable((RecipeUser) request.attribute(REQ_USER));
+    public static Optional<RecipeUser> extract(Context ctx) {
+        return Optional.ofNullable((RecipeUser) ctx.attribute(REQ_USER));
     }
 
-    public static Optional<RecipeUser> lookupUser(Request req, MySql sql) {
-        Optional<RecipeUser> reqUser = AuthEndpoint.extract(req);
+    public static Optional<RecipeUser> lookupUser(Context ctx, MySql sql) {
+        Optional<RecipeUser> reqUser = AuthEndpoint.extract(ctx);
 
         if (!reqUser.isPresent()) {
             return reqUser;

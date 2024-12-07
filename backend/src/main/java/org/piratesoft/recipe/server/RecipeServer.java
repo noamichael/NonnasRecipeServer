@@ -6,8 +6,7 @@ import java.io.InputStreamReader;
 
 import org.piratesoft.recipe.server.sql.MySqlInstance;
 
-import spark.Service;
-import static spark.Service.ignite;
+import io.javalin.Javalin;
 
 /**
  *
@@ -25,36 +24,37 @@ public class RecipeServer {
     }
 
     public void startServer(String... args) {
-        Service publicService = ignite().port(PORT);
+        Javalin publicService = Javalin.create(c -> {
+            c.router.ignoreTrailingSlashes = true;
+            c.jetty.defaultHost = "0.0.0.0";
+        });
 
-        System.out.println(String.format("Starting server with port: %s", PORT));
         AuthEndpoint.setupEndpoints(publicService);
         RecipeEndpoint.setupEndpoints(publicService);
 
         // Clean up MySQL instance after each request
-        publicService.after((req, res) -> {
+        publicService.after((ctx) -> {
             MySqlInstance.destroy();
         });
 
         // Clean up the instance on exception as well
-        publicService.exception(Exception.class, (ex, req, res) -> {
+        publicService.exception(Exception.class, (ex, ctx) -> {
             System.out.println("Exception encounter. Cleaning up sql connection");
             MySqlInstance.destroy();
-            res.status(500);
-            res.type("text/plain");
-            res.body("Internal Server Error");
+            ctx.status(500);
+            ctx.contentType("text/plain");
+            ctx.result("Internal Server Error");
             ex.printStackTrace();
         });
+
+        System.out.println(String.format("Starting server with port: %s", PORT));
+
+        publicService.start(PORT);
 
         doWaitForInput(publicService);
     }
 
-    private void stopServer(Service service) {
-        System.out.println("Stopping the server...");
-        service.stop();
-    }
-
-    public void doWaitForInput(Service publicService) {
+    public void doWaitForInput(Javalin publicService) {
         this.waitForInput = new Thread(() -> {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String input;
@@ -69,7 +69,9 @@ public class RecipeServer {
                     break;
                 }
             } while (!isStopCommand(input) && !Thread.interrupted());
-            this.stopServer(publicService);
+
+            System.out.println("Stopping the server...");
+            publicService.stop();
         });
         this.waitForInput.start();
     }
