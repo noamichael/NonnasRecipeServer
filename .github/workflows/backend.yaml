@@ -50,4 +50,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
+          file: ./backend/Dockerfile
           tags: us-east4-docker.pkg.dev/${{ secrets.GOOGLE_PROJECT_PROD }}/docker/backend:${{ steps.get-tag.outputs.sha_short }}
