@@ -7,23 +7,23 @@ resource "google_sql_database_instance" "nonnas_recipes" {
     # Second-generation instance tiers are based on the machine
     # type. See argument reference below.
     activation_policy = "ALWAYS"
-    tier = "db-f1-micro"
+    tier              = "db-f1-micro"
     availability_type = "ZONAL"
-    disk_type = "PD_HDD"
-    disk_size = "10"
+    disk_type         = "PD_HDD"
+    disk_size         = "10"
 
     backup_configuration {
-      enabled = true
+      enabled  = true
       location = "us"
       backup_retention_settings {
         retained_backups = 7
-        retention_unit = "COUNT"
+        retention_unit   = "COUNT"
       }
     }
 
     ip_configuration {
       ipv4_enabled = true
-      ssl_mode = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"
+      ssl_mode     = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"
     }
 
     location_preference {
@@ -31,7 +31,7 @@ resource "google_sql_database_instance" "nonnas_recipes" {
     }
 
     maintenance_window {
-      day = "1"
+      day  = "1"
       hour = "0"
     }
 
