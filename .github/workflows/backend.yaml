@@ -1,0 +1,32 @@
+name: Backend Workflow
+
+on:
+  push:
+    branches:
+      - master
+      - feature-update-frontend
+    paths:
+      - '.github/workflows/backend.yaml'
+      - 'backend/**'
+  workflow_dispatch: {}
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.GOOGLE_IDENTITY_PROVIDER }}
+
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: "Use gcloud CLI"
+        run: "gcloud info"
