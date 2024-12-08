@@ -51,4 +51,5 @@ jobs:
         with:
           push: true
           file: ./backend/Dockerfile
+          context: ./backend
           tags: us-east4-docker.pkg.dev/${{ secrets.GOOGLE_PROJECT_PROD }}/docker/backend:${{ steps.get-tag.outputs.sha_short }}
