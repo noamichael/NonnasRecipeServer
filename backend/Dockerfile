@@ -8,19 +8,15 @@ COPY  . .
 RUN mvn package
 
 # Release Image
-FROM eclipse-temurin:21.0.5_11-jre as release
-
-ENV GOOGLE_APPLICATION_CREDENTIALS="/opt/app/secrets/database-sa.json"
+FROM eclipse-temurin:21.0.5_11-jre-alpine as release
 
 USER root
 
 WORKDIR /opt/app
 
-#COPY ./secrets/database-sa.json ./secrets/database-sa.json
-
 COPY --from=builder /tmp/build/target/NonnasRecipeServer-1.0-SNAPSHOT-jar-with-dependencies.jar ./NonnasRecipeServer.jar
 
-EXPOSE 6789 8080
+EXPOSE 8080
 
 USER 1001
 
