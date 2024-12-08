@@ -62,5 +62,5 @@ jobs:
           flags: --service-account=${{ secrets.BACKEND_SERVICE_ACCOUNT }}
           secrets: |- 
             GOOGLE_CLIENT_ID=google-client-id:latest
-            MYSQL_USER=database-user:latest
+            MYSQL_USER=database-username:latest
             MYSQL_PASSWORD=database-password:latest
