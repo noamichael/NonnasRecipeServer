@@ -53,3 +53,14 @@ jobs:
           file: ./backend/Dockerfile
           context: ./backend
           tags: us-east4-docker.pkg.dev/${{ secrets.GOOGLE_PROJECT_PROD }}/docker/backend:${{ steps.get-tag.outputs.sha_short }}
+      
+      - id: 'deploy'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'backend'
+          image: us-east4-docker.pkg.dev/${{ secrets.GOOGLE_PROJECT_PROD }}/docker/backend:${{ steps.get-tag.outputs.sha_short }}
+          flags: --service-account=${{ secrets.BACKEND_SERVICE_ACCOUNT }}
+          secrets: |- 
+            GOOGLE_CLIENT_ID=google-client-id:latest
+            MYSQL_USER=database-user:latest
+            MYSQL_PASSWORD=database-password:latest
