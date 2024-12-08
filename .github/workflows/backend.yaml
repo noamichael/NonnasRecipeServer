@@ -60,6 +60,8 @@ jobs:
           service: 'backend'
           image: us-east4-docker.pkg.dev/${{ secrets.GOOGLE_PROJECT_PROD }}/docker/backend:${{ steps.get-tag.outputs.sha_short }}
           flags: --service-account=${{ secrets.BACKEND_SERVICE_ACCOUNT }}
+          env_vars: |-
+            CLOUD_SQL_INSTANCE=${{ secrets.DATABASE_INSTANCE }}
           secrets: |- 
             GOOGLE_CLIENT_ID=google-client-id:latest
             MYSQL_USER=database-username:latest
