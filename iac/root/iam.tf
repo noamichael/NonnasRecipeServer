@@ -9,6 +9,11 @@ resource "google_service_account" "backend" {
   display_name = "NR Backend Service Account"
 }
 
+resource "google_service_account" "frontend" {
+  account_id   = "nr-frontend"
+  display_name = "NR Frontend Service Account"
+}
+
 # Backend Roles
 
 resource "google_project_iam_member" "backend_cloud_sql_client" {
@@ -27,6 +32,28 @@ resource "google_project_iam_member" "backend_artifact_registry_reader" {
   project = var.project_id
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${google_service_account.backend.email}"
+}
+
+# Frontend Roles
+
+resource "google_project_iam_member" "frontend_secrets_accessor" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.frontend.email}"
+}
+
+resource "google_project_iam_member" "frontend_artifact_registry_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.frontend.email}"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "member" {
+  project  = var.project_id
+  location = data.google_cloud_run_v2_service.backend.location
+  name     = data.google_cloud_run_v2_service.backend.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.frontend.email}"
 }
 
 # Cloud Run CI CD Roles
