@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { TypeOption } from '../recipe.service';
 
 @Injectable({
-  providedIn: '***REMOVED***'
+  providedIn: 'root'
 })
 export class RecipeTableService {
 

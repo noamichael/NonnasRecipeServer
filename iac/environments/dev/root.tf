@@ -1,4 +1,4 @@
-module "***REMOVED***" {
-  source = "../../***REMOVED***"
+module "root" {
+  source = "../../root"
   project_id = "nonnas-recipes-dev"
 }

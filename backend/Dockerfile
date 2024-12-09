@@ -10,7 +10,7 @@ RUN mvn package
 # Release Image
 FROM eclipse-temurin:21.0.5_11-jre-alpine as release
 
-USER ***REMOVED***
+USER root
 
 WORKDIR /opt/app
 

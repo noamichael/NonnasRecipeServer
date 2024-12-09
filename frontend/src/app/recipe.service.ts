@@ -15,7 +15,7 @@ export interface RecipeResponse<T> {
 export interface TypeOption { label: string, value: string | null }
 
 @Injectable({
-  providedIn: '***REMOVED***'
+  providedIn: 'root'
 })
 export class RecipeService {
 

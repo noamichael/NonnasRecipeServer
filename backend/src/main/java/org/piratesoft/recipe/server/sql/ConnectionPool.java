@@ -42,7 +42,7 @@ public final class ConnectionPool {
             config.addDataSourceProperty("cloudSqlInstance", cloudSqlInstance);
         }
 
-        config.setUsername(creds.getUsername()); // e.g. "***REMOVED***", "mysql"
+        config.setUsername(creds.getUsername()); // e.g. "root", "mysql"
         config.setPassword(creds.getPassword()); // e.g. "my-password"
 
 

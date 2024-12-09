@@ -11,7 +11,7 @@ interface PageAction {
   onClick: (event: MouseEvent) => void;
 }
 
-@Injectable({ providedIn: "***REMOVED***" })
+@Injectable({ providedIn: "root" })
 export class PageActionService {
 
   pageActions: PageAction[] = [];

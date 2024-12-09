@@ -14,7 +14,7 @@ export interface VerifyResponse {
 }
 
 @Injectable({
-  providedIn: "***REMOVED***",
+  providedIn: "root",
 })
 export class UserService {
   private user: User = anonymous;

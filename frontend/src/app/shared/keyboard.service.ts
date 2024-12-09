@@ -19,7 +19,7 @@ function getRandomId() {
 }
 
 @Injectable({
-    providedIn: '***REMOVED***'
+    providedIn: 'root'
 })
 export class KeyboardService {
 
