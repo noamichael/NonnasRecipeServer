@@ -68,11 +68,6 @@ resource "google_service_account_iam_binding" "cloud_run_ci_cd_workload_pool" {
   ]
 }
 
-moved {
-  from = google_service_account_iam_binding.cloud_run_ci_cd_service_identity
-  to   = google_service_account_iam_binding.cloud_run_ci_cd_service_identity_backend
-}
-
 resource "google_service_account_iam_binding" "cloud_run_ci_cd_service_identity_backend" {
   service_account_id = google_service_account.backend.id
   role               = "roles/iam.serviceAccountUser"
