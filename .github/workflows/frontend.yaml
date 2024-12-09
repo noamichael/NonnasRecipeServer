@@ -60,3 +60,5 @@ jobs:
           service: 'frontend'
           image: us-east4-docker.pkg.dev/${{ secrets.GOOGLE_PROJECT_PROD }}/docker/frontend:${{ steps.get-tag.outputs.sha_short }}
           flags: --service-account=${{ secrets.FRONTEND_SERVICE_ACCOUNT }} --allow-unauthenticated
+          env_vars: |-
+            BACKEND_URL=${{ secrets.BACKEND_URL }}

@@ -4,7 +4,7 @@ const proxy = require('express-http-proxy');
 const helmet = require("helmet");
 
 const app = express();
-const api = process.env.PUBLIC_API || 'backend:6789';
+const api = process.env.BACKEND_URL || 'backend:6789';
 
 // Set security headers (excluding content policy)
 // since that breaks Angular's dyanimc styles
