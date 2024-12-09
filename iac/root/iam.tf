@@ -68,8 +68,21 @@ resource "google_service_account_iam_binding" "cloud_run_ci_cd_workload_pool" {
   ]
 }
 
-resource "google_service_account_iam_binding" "cloud_run_ci_cd_service_identity" {
+moved {
+  from = google_service_account_iam_binding.cloud_run_ci_cd_service_identity
+  to   = google_service_account_iam_binding.cloud_run_ci_cd_service_identity_backend
+}
+
+resource "google_service_account_iam_binding" "cloud_run_ci_cd_service_identity_backend" {
   service_account_id = google_service_account.backend.id
+  role               = "roles/iam.serviceAccountUser"
+  members = [
+    "serviceAccount:${google_service_account.cloud_run_ci_cd.email}"
+  ]
+}
+
+resource "google_service_account_iam_binding" "cloud_run_ci_cd_service_identity_frontend" {
+  service_account_id = google_service_account.frontend.id
   role               = "roles/iam.serviceAccountUser"
   members = [
     "serviceAccount:${google_service_account.cloud_run_ci_cd.email}"
