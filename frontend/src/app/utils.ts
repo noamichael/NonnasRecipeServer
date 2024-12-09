@@ -8,7 +8,7 @@ function moveInArray<T>(arr: T[], oldIndex: number, newIndex: number) {
     if (newIndex >= arr.length) {
         let k = newIndex - arr.length + 1;
         while (k--) {
-            arr.push(undefined);
+            arr.push(undefined as T);
         }
     }
     arr.splice(newIndex, 0, arr.splice(oldIndex, 1)[0]);
@@ -16,7 +16,7 @@ function moveInArray<T>(arr: T[], oldIndex: number, newIndex: number) {
 }
 
 function debounce(fn: Function, millis = 800){
-    let timeoutId;
+    let timeoutId: number;
     return function(){
         const args = Array.prototype.slice.call(arguments);
         if(timeoutId){

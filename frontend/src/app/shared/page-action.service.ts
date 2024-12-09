@@ -5,18 +5,21 @@ export type PageActionPosition = 'hidden' | 'topbar' | 'bottom-sheet';
 interface PageAction {
   label: string;
   icon: string;
+  color: string;
   desktop: PageActionPosition;
   mobile: PageActionPosition;
   onClick: (event: MouseEvent) => void;
 }
 
-@Injectable({ providedIn: "***REMOVED***" })
+@Injectable({ providedIn: "root" })
 export class PageActionService {
 
   pageActions: PageAction[] = [];
 
   register(pageAction: PageAction) {
-    this.pageActions.push(pageAction);
+    setTimeout(() => {
+      this.pageActions.push(pageAction);
+    })
   }
 
   unregister(pageAction: PageAction) {

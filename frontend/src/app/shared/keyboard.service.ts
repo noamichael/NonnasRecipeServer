@@ -4,9 +4,9 @@ import Keyboard from "simple-keyboard";
 import { filter } from 'rxjs/operators';
 
 export interface ActiveInput {
-    onChange: (string) => void
-    onKeyPress: (string) => void,
-    getInput: () => HTMLInputElement
+    onChange: (s: string) => void
+    onKeyPress: (s: string) => void,
+    getInput: () => HTMLInputElement | null
 }
 
 const noop = () => { };
@@ -19,12 +19,12 @@ function getRandomId() {
 }
 
 @Injectable({
-    providedIn: '***REMOVED***'
+    providedIn: 'root'
 })
 export class KeyboardService {
 
-    private keyboard: Keyboard
-    private element: HTMLElement
+    private keyboard!: Keyboard
+    private element!: HTMLElement
     private activeInput: ActiveInput = noopInput
 
     constructor(private router: Router) {
@@ -41,7 +41,7 @@ export class KeyboardService {
             onChange: input => this.onChange(input),
             onKeyPress: button => this.onKeyPress(button)
         });
-        this.element = document.querySelector('.keyboard-wrapper');
+        this.element = document.querySelector('.keyboard-wrapper') as HTMLElement;
     }
 
     close() {
@@ -49,7 +49,7 @@ export class KeyboardService {
             return;
         }
         this.element.style.display = 'none';
-        document.body.style.marginBottom = null;
+        document.body.style.marginBottom = '';
     }
 
     destroy() {
@@ -63,7 +63,7 @@ export class KeyboardService {
         if (!this.enabled) {
             return;
         }
-        this.keyboard.clearInput(inputEl.dataset.id)
+        this.keyboard.clearInput(inputEl.dataset["id"])
     }
 
     setActiveInput(input: ActiveInput) {
@@ -75,13 +75,16 @@ export class KeyboardService {
             this.element.style.display = 'block';
             document.body.style.marginBottom = '50vh';
             const inputEl = input.getInput();
-            if (!inputEl.dataset.id) {
-                inputEl.dataset.id = `input-${getRandomId()}`
+            if (!inputEl) {
+                return;
+            }
+            if (!inputEl.dataset["id"]) {
+                inputEl.dataset["id"] = `input-${getRandomId()}`
             }
             this.keyboard.setOptions({
-                inputName: inputEl.dataset.id
+                inputName: inputEl.dataset["id"]
             })
-            this.keyboard.setInput(inputEl.value, inputEl.dataset.id);
+            this.keyboard.setInput(inputEl.value, inputEl.dataset["id"]);
         } else {
             this.close()
         }

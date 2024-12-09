@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http'
 import { Recipe } from './schema/recipe';
 import { User } from './schema/user';
+import { lastValueFrom } from 'rxjs';
 
 export interface RecipeResponse<T> {
   data: T
@@ -11,9 +12,11 @@ export interface RecipeResponse<T> {
   totalRecordCount?: number
 }
 
-export interface TypeOption { label: string, value: string }
+export interface TypeOption { label: string, value: string | null }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class RecipeService {
 
   constructor(
@@ -22,11 +25,6 @@ export class RecipeService {
 
   get basePublicUrl() {
     return '/api';
-  }
-
-
-  bootstrap() {
-    return Promise.resolve("ok");
   }
 
   getRecipesUrl() {
@@ -49,7 +47,7 @@ export class RecipeService {
   }
 
   getRecipeOwners() {
-     return this.http.get<RecipeResponse<User[]>>(`${this.getRecipesUrl()}/owners`, { });
+    return this.http.get<RecipeResponse<User[]>>(`${this.getRecipesUrl()}/owners`, {});
   }
 
   getRecipeTypes() {
@@ -57,11 +55,11 @@ export class RecipeService {
   }
 
   saveRecipe(recipe: Recipe) {
-    return this.http.post<RecipeResponse<Recipe>>(this.getRecipesUrl(), recipe);
+    return lastValueFrom(this.http.post<RecipeResponse<Recipe>>(this.getRecipesUrl(), recipe));
   }
 
   deleteRecipe(recipe: Recipe) {
-    return this.http.delete(this.getRecipeUrl(recipe.id));
+    return lastValueFrom(this.http.delete(this.getRecipeUrl(recipe.id as number)));
   }
 
   ownsRecipe(user: User, recipe: Recipe) {

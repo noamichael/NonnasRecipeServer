@@ -1,0 +1,40 @@
+# name: Terraform IaC Workflow
+
+# on:
+#   push:
+#     branches:
+#       - master
+#       - feature-update-frontend
+#     paths:
+#       - '.github/workflows/iac.yaml'
+#       - 'iac/**'
+#   workflow_dispatch: {}
+
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Set up Terraform
+#         uses: hashicorp/setup-terraform@v3
+
+#       - name: Terraform Init
+#         run: terraform init
+#         working-directory: ./iac
+#         env:
+#           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+#       - name: Terraform Plan
+#         run: terraform plan -out=plan.tfplan
+#         working-directory: ./iac
+#         env:
+#           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+#       - name: Terraform Apply
+#         run: terraform apply -auto-approve plan.tfplan
+#         working-directory: ./iac
+#         env:
+#           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}

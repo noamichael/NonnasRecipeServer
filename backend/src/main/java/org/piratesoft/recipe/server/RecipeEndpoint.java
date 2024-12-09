@@ -1,9 +1,6 @@
 package org.piratesoft.recipe.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,12 +13,9 @@ import org.piratesoft.recipe.server.sql.MySql;
 import org.piratesoft.recipe.server.sql.MySqlInstance;
 import org.piratesoft.recipe.server.sql.repository.RecipeRepository;
 
-import spark.QueryParamsMap;
-import spark.Request;
-import spark.Response;
-import spark.ResponseTransformer;
-import spark.Route;
-import spark.Service;
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 
 /**
  *
@@ -29,64 +23,65 @@ import spark.Service;
  */
 public class RecipeEndpoint {
 
-    public static void setupEndpoints(Service service) {
-
-        final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+    public static void setupEndpoints(Javalin service) {
 
         service.options("/*", RecipeEndpoint::options);
 
         service.before(RecipeEndpoint::before);
 
         // PUBLIC methods
-        final ResponseTransformer JSON = new JsonTransformer();
 
-        service.get("/recipe-types", (req, res) -> {
-            return new RecipeResponse<>(Arrays.asList(RecipeType.values()));
-        }, JSON);
+        service.get("/recipe-types", (ctx) -> {
+            ctx.json(new RecipeResponse<>(Arrays.asList(RecipeType.values())));
+        });
 
-        service.get("/recipes", sqlRoute((req, res, sql) -> {
+        service.get("/recipes", sqlRoute((ctx, sql) -> {
             RecipeRepository repository = new RecipeRepository(sql);
-            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(req, sql);
-            int page = Integer.valueOf(req.queryParamOrDefault("page", "1"));
-            int count = Integer.valueOf(req.queryParamOrDefault("count", "1000"));
-            return repository.getRecipes(page, count, reqUser.orElse(null), paramsToMap(req.queryMap()));
-        }), JSON);
+            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(ctx, sql);
+            Map<String, List<String>> queryParams = ctx.queryParamMap();
+            int page = Integer.valueOf(queryParams.getOrDefault("page", Arrays.asList(("1"))).getFirst());
+            int count = Integer.valueOf(queryParams.getOrDefault("count", Arrays.asList("1000")).getFirst());
+            ctx.json(repository.getRecipes(page, count, reqUser.orElse(null), queryParams));
+        }));
 
-        service.get("/recipes/owners", sqlRoute((req, res, sql) -> {
+        service.get("/recipes/owners", sqlRoute((ctx, sql) -> {
             RecipeRepository repository = new RecipeRepository(sql);
-            return repository.getRecipeOwners();
-        }), JSON);
+            ctx.json(repository.getRecipeOwners());
+        }));
 
-        service.get("/recipes/:id", sqlRoute((req, res, sql) -> {
+        service.get("/recipes/{id}", sqlRoute((ctx, sql) -> {
             RecipeRepository repository = new RecipeRepository(sql);
-            int recipeId = Integer.valueOf(req.params(":id"));
+            int recipeId = Integer.valueOf(ctx.pathParam("id"));
             Optional<Recipe> recipeOptional = repository.getRecipe(recipeId);
             if (!recipeOptional.isPresent()) {
-                res.status(404);
-                return "Recipe not found";
+                ctx.status(404);
+                ctx.result("Recipe not found");
+                return;
             }
-            return new RecipeResponse<>(recipeOptional.get());
-        }), JSON);
+            ctx.json(new RecipeResponse<>(recipeOptional.get()));
+        }));
 
         // Private method
-        service.post("/recipes", sqlRoute((req, res, sql) -> {
+        service.post("/recipes", sqlRoute((ctx, sql) -> {
 
-            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(req, sql);
+            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(ctx, sql);
 
             if (!reqUser.isPresent()) {
-                res.status(401);
-                return unauthorized("You need to be signed in to save recipes");
+                ctx.status(401);
+                ctx.json(unauthorized("You need to be signed in to save recipes"));
+                return;
             }
             RecipeUser user = reqUser.get();
 
             if (!user.canWrite()) {
-                res.status(403);
-                return unauthorized("You are currently not approved to save recipes");
+                ctx.status(403);
+                ctx.json(unauthorized("You are currently not approved to save recipes"));
+                return;
             }
 
             RecipeRepository repository = new RecipeRepository(sql);
 
-            Recipe recipe = gson.fromJson(req.body(), Recipe.class);
+            Recipe recipe = ctx.bodyAsClass(Recipe.class);
 
             Integer id = recipe.getId();
             boolean shouldSetId = true;
@@ -97,8 +92,9 @@ public class RecipeEndpoint {
                 if (previousRecipe != null) {
                     // If you don't own the recipe AND you aren't an admin, fail
                     if (previousRecipe.getUserId() != user.id && !user.isAdmin()) {
-                        res.status(401);
-                        return unauthorized("You can only save recipes that belong to you.");
+                        ctx.status(401);
+                        ctx.json(unauthorized("You can only save recipes that belong to you."));
+                        return;
                     }
 
                     // no need to set id since there is a previous record
@@ -114,97 +110,91 @@ public class RecipeEndpoint {
 
             id = repository.saveRecipe(recipe);
             if (id == -1) {
-                res.status(500);
-                return "Could not save recipe. Unknown SQL error";
+                ctx.status(500);
+                ctx.result("Could not save recipe. Unknown SQL error");
+                return;
             }
             Recipe justId = new Recipe();
             justId.setId(id);
-            return new RecipeResponse<>(justId);
-        }), JSON);
+            ctx.json(new RecipeResponse<>(justId));
+        }));
 
-        service.delete("/recipes/:id", sqlRoute((req, res, sql) -> {
-            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(req, sql);
+        service.delete("/recipes/{id}", sqlRoute((ctx, sql) -> {
+            Optional<RecipeUser> reqUser = AuthEndpoint.lookupUser(ctx, sql);
 
             if (!reqUser.isPresent()) {
-                res.status(401);
-                return unauthorized("You need to be signed in to save recipes");
+                ctx.status(401);
+                ctx.json(unauthorized("You need to be signed in to save recipes"));
+                return;
             }
 
             RecipeRepository repository = new RecipeRepository(sql);
 
             RecipeUser user = reqUser.get();
-            int recipeId = Integer.valueOf(req.params(":id"));
+            int recipeId = Integer.valueOf(ctx.pathParam("id"));
 
             Recipe previousRecipe = repository.getRecipe(recipeId).orElse(null);
 
             if (!user.canWrite()) {
-                res.status(403);
-                return unauthorized("You are not authorized to delete recipes");
+                ctx.status(403);
+                ctx.json(unauthorized("You are not authorized to delete recipes"));
+                return;
             }
 
             if (previousRecipe != null) {
                 // If you don't own the recipe AND you aren't an admin, fail
                 if (previousRecipe.getUserId() != user.id && !user.isAdmin()) {
-                    res.status(403);
-                    return unauthorized("You can only delete recipes that belong to you.");
+                    ctx.status(403);
+                    ctx.json(unauthorized("You can only delete recipes that belong to you."));
+                    return;
                 }
             } else {
-                res.status(404);
-                return new RecipeResponse.RecipeError("404", "Not found");
+                ctx.status(404);
+                ctx.json(new RecipeResponse.RecipeError("404", "Not found"));
+                return;
             }
 
             int id = repository.deleteRecipe(recipeId);
             if (id == -1) {
-                res.status(500);
-                return "Could not delete recipe. Unknown SQL error";
+                ctx.status(500);
+                ctx.result("Could not delete recipe. Unknown SQL error");
+                return;
             }
-            res.status(200);
-            return null;
-        }), JSON);
+            ctx.status(200);
+        }));
     }
 
-    static Object options(Request request, Response response) {
-        String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
+    static void options(Context ctx) {
+        String accessControlRequestHeaders = ctx.header("Access-Control-Request-Headers");
         if (accessControlRequestHeaders != null) {
-            response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
+            ctx.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
         }
 
-        String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
+        String accessControlRequestMethod = ctx.header("Access-Control-Request-Method");
         if (accessControlRequestMethod != null) {
-            response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
+            ctx.header("Access-Control-Allow-Methods", accessControlRequestMethod);
         }
 
-        return "OK";
+        ctx.result("OK");
     }
 
-    static void before(Request request, Response response) {
-        response.header("Access-Control-Allow-Origin", "*");
-        response.header("Access-Control-Request-Method", "GET,PUT,POST,DELETE,OPTIONS");
-        response.header("Access-Control-Allow-Headers", "*");
-        response.header("Access-Control-Allow-Credentials", "true");
+    static void before(Context ctx) {
+        ctx.header("Access-Control-Allow-Origin", "*");
+        ctx.header("Access-Control-Request-Method", "GET,PUT,POST,DELETE,OPTIONS");
+        ctx.header("Access-Control-Allow-Headers", "*");
+        ctx.header("Access-Control-Allow-Credentials", "true");
     }
 
-    static Route sqlRoute(SQLEndpoint endpoint) {
-        return (req, res) -> {
+    static Handler sqlRoute(SQLEndpoint endpoint) {
+        return (ctx) -> {
             MySql sql = MySqlInstance.get();
-            return endpoint.handle(req, res, sql);
+            endpoint.handle(ctx, sql);
         };
-    }
-
-    static Map<String, List<String>> paramsToMap(QueryParamsMap map) {
-        Map<String, List<String>> result = new HashMap<>();
-
-        map.toMap().forEach((key, values) -> {
-            result.put(key, Arrays.asList(values));
-        });
-
-        return result;
     }
 
     @FunctionalInterface
     interface SQLEndpoint {
-
-        Object handle(Request req, Response res, MySql sql) throws Exception;
+        void handle(Context ctx, MySql sql) throws Exception;
     }
 
     static RecipeResponse<Object> unauthorized(String message) {

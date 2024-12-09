@@ -5,6 +5,8 @@ import {
   NavigationError,
   NavigationStart,
   Router,
+  RouterLink,
+  RouterOutlet,
 } from "@angular/router";
 import { User } from "./schema/user";
 import { KeyboardService } from "./shared/keyboard.service";
@@ -12,21 +14,44 @@ import { UserService } from "./shared/user.service";
 import { ConfirmationService } from "primeng/api";
 import { PageActionService } from "./shared/page-action.service";
 
+import { ProgressBarModule } from "primeng/progressbar";
+import { ButtonModule } from "primeng/button";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { SidebarModule } from 'primeng/sidebar';
+import { TriStateCheckboxModule } from "primeng/tristatecheckbox";
+import { PageActionComponent } from "./page-action/page-action.component";
+import { FormsModule } from "@angular/forms";
+import { PopoverKeyboardDirective } from "./shared/popover-keyboard.directive";
+
+
 @Component({
   selector: "nr-app",
+  standalone: true,
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
   providers: [ConfirmationService],
+  imports: [
+    RouterOutlet,
+    FormsModule,
+    ProgressBarModule,
+    ButtonModule,
+    RouterLink,
+    ConfirmDialogModule,
+    SidebarModule,
+    TriStateCheckboxModule,
+    PageActionComponent,
+    PopoverKeyboardDirective
+  ]
 })
 export class AppComponent implements OnInit {
-  loading: boolean;
+  loading: boolean = false;
   loggedIn: boolean = false;
-  user: User;
+  user: User | null = null
   sidebarOpen = false;
   appName = "Nonna's";
   GOOGLE_CLIENT_ID = UserService.client_id;
-  darkMode: boolean = null;
-  styleLink: HTMLLinkElement;
+  darkMode: boolean | null = null;
+  styleLink: HTMLLinkElement = null as unknown as HTMLLinkElement;
 
   constructor(
     private router: Router,
@@ -35,10 +60,10 @@ export class AppComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private changeDetector: ChangeDetectorRef,
     private pageActionService: PageActionService,
-  ) {}
+  ) { }
 
   ngOnInit() {
-    this.styleLink = document.querySelector("#themeLink");
+    this.styleLink = document.querySelector("#themeLink") as HTMLLinkElement;
     this.userService.$auth.subscribe((user) => {
       this.user = user;
       this.sidebarOpen = false;

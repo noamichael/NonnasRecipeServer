@@ -1,11 +1,15 @@
 package org.piratesoft.recipe.server.sql;
 
+import java.util.logging.Logger;
+
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 public final class ConnectionPool {
+
+    private final static Logger LOGGER = Logger.getLogger(ConnectionPool.class.getName());
 
     public static DataSource createConnectionPool(SqlCreds creds) {
         // [START cloud_sql_mysql_servlet_create]
@@ -29,14 +33,16 @@ public final class ConnectionPool {
 
         if (jdbcConnectionString != null) { // for local development
             config.setJdbcUrl(jdbcConnectionString);
-        } else { 
+        } else {
+            String cloudSqlInstance = System.getenv("CLOUD_SQL_INSTANCE");
+            LOGGER.info("Connecting to " + cloudSqlInstance);
             // Configure which instance and what database user to connect with.
             config.setJdbcUrl(String.format("jdbc:mysql:///%s", "NonnasRecipes"));
             config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory");
-            config.addDataSourceProperty("cloudSqlInstance", "***REMOVED***");
+            config.addDataSourceProperty("cloudSqlInstance", cloudSqlInstance);
         }
 
-        config.setUsername(creds.getUsername()); // e.g. "***REMOVED***", "mysql"
+        config.setUsername(creds.getUsername()); // e.g. "root", "mysql"
         config.setPassword(creds.getPassword()); // e.g. "my-password"
 
 
