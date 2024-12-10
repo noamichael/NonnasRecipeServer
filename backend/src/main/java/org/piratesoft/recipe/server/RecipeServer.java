@@ -51,6 +51,13 @@ public class RecipeServer {
 
         publicService.start(PORT);
 
+        boolean isAppCDS = System.getenv("APP_CDS") != null;
+
+        if (isAppCDS) {
+            publicService.stop();
+            return;
+        }
+
         doWaitForInput(publicService);
     }
 
